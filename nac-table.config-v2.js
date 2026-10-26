@@ -26,4 +26,5 @@ const config = {
     }
   }
 };
+
 export { config };
