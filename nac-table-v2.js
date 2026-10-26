@@ -455,6 +455,28 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       }
     }, {
       kind: "field",
+      key: "userEdited",
+      value() {
+        return false;
+      }
+    }, {
+      kind: "field",
+      key: "tempRow",
+      value() {
+        return null;
+      }
+    }, {
+      kind: "method",
+      key: "firstUpdated",
+      value: function firstUpdated() {
+        // Elemento nuevo: enviar la plantilla ya normalizada (comillas dobles) como valor inicial
+        setTimeout(() => {
+          const saved = typeof this.value === "string" ? this.value.trim() : "";
+          if (!saved && !this.userEdited && this.data.length) this.onChange(this.data);
+        }, 400);
+      }
+    }, {
+      kind: "field",
       decorators: [e({
         type: Number
       })],
@@ -609,6 +631,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       key: "updated",
       value: function updated(changedProps) {
         // 1) Datos guardados (valor del control que Nintex restaura al editar) tienen prioridad
+        if (this.userEdited) return; // lo que el usuario ha editado no se sobrescribe
         const saved = typeof this.value === "string" ? this.value.trim() : "";
         if (changedProps.has("value") && saved && saved !== this.lastEmitted) {
           try {
@@ -702,9 +725,9 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         field,
         value
       }) {
-        if (this.editCell) {
-          const found = this.tempEditRowData || this.pageData.find(item => item === this.editCell?.row);
-          if (!found) return;
+        if (this.editCell && this.selectedRow) {
+          const found = this.tempEditRowData && this.tempRow === this.selectedRow ? this.tempEditRowData : this.selectedRow;
+          this.tempRow = this.selectedRow;
           const editedRow = {
             ...found
           };
@@ -1010,6 +1033,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         this.updatePageData();
         const newRow = {};
         this.columns.forEach(column => newRow[column.field] = "");
+        this.userEdited = true;
         this.newRows.add(newRow);
         this.data.push(newRow);
         this.selectedRow = newRow;
@@ -1024,6 +1048,8 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       key: "onEditRow",
       value: function onEditRow() {
         if (this.selectedRow) {
+          this.tempEditRowData = null;
+          this.tempRow = null;
           this.editMode = true;
           this.editCell = {
             columnName: "",
@@ -1038,6 +1064,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       key: "onDeleteRow",
       value: function onDeleteRow() {
         if (this.selectedRow) {
+          this.userEdited = true;
           const index = this.data.indexOf(this.selectedRow);
           this.data.splice(index, 1);
           this.unselect();
@@ -1058,6 +1085,9 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         if (this.editMode) {
           this.editMode = false;
           this.saveSelectedRow();
+          this.tempEditRowData = null;
+          this.tempRow = null;
+          this.userEdited = true;
           this.updatePageData();
           this.onChange(this.data);
         }
@@ -1069,7 +1099,8 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         if (this.selectedRow) {
           const editedRow = this.pageData.find(item => item === this.selectedRow);
           if (editedRow) {
-            this.columns.forEach(column => {});
+            this.tempEditRowData = null;
+            this.tempRow = null;
             this.editMode = false;
             this.editCell = null;
             this.requestUpdate();
@@ -1096,11 +1127,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       kind: "method",
       key: "onLoad",
       value: function onLoad(e) {
-        console.info("data: " + this.data);
-        var dataCheck = this.data.toString();
-        if (dataCheck == null || dataCheck == '') {
-          this.onChange(this.collection);
-        }
+        // Ya no envía el texto en bruto de JSONData (ver firstUpdated)
       }
     }, {
       kind: "method",
