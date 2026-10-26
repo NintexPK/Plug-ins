@@ -1,5 +1,5 @@
 const config = {
-  controlName: 'Nac Table',
+  controlName: 'Nac Table v2',
   description: 'Editable Table for NAC',
   groupName: 'Presales Controls',
   fallbackDisableSubmit: false,

@@ -220,7 +220,7 @@ const styles = [baseStyle, NacTableStyles];
  * SPDX-License-Identifier: BSD-3-Clause
  */console.warn("The main 'lit-element' module entrypoint is deprecated. Please update your imports to use the 'lit' package: 'lit' and 'lit/decorators.ts' or import from 'lit-element/lit-element.ts'. See https://lit.dev/msg/deprecated-import-path for more information.");
 
-_decorate([e$1("lit-toolbar")], function (_initialize, _LitElement) {
+_decorate([e$1("lit-toolbar-v2")], function (_initialize, _LitElement) {
   class LitToolbar extends _LitElement {
     constructor(...args) {
       super(...args);
@@ -405,7 +405,7 @@ _decorate([e$1("lit-toolbar")], function (_initialize, _LitElement) {
   };
 }, s);
 
-let AndysTable = _decorate([e$1('andys-table')], function (_initialize, _LitElement) {
+let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitElement) {
   class AndysTable extends _LitElement {
     constructor(...args) {
       super(...args);
@@ -679,7 +679,7 @@ let AndysTable = _decorate([e$1('andys-table')], function (_initialize, _LitElem
       key: "renderToolbar",
       value: function renderToolbar() {
         return y`
-      <lit-toolbar
+      <lit-toolbar-v2
         @add-row="${this.onAddRow}"
         @edit-row="${this.onEditRow}"
         @delete-row="${this.onDeleteRow}"
@@ -689,7 +689,7 @@ let AndysTable = _decorate([e$1('andys-table')], function (_initialize, _LitElem
         .hasSelectedRow="${!!this.selectedRow}"
         .canAdd="${!this.maxRows || this.data.length < this.maxRows}"
         
-      ></lit-toolbar>
+      ></lit-toolbar-v2>
     `;
       }
     }, {
@@ -883,7 +883,7 @@ let AndysTable = _decorate([e$1('andys-table')], function (_initialize, _LitElem
       </div>
       <script>
         
-  const nacTable = document.querySelector("andys-table");
+  const nacTable = document.querySelector("andys-table-v2");
 
   
 </script>
