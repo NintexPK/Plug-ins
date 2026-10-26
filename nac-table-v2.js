@@ -60,6 +60,14 @@ th {
   background-color: rgba(25, 118, 210, 0.08);
 }
 
+.locked-cell {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.table-row.edit .table-cell-value.locked-cell {
+  visibility: visible;
+}
+
 .table-row.locked {
   color: rgba(0, 0, 0, 0.45);
   cursor: not-allowed;
@@ -444,6 +452,30 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       decorators: [e({
         type: String
       })],
+      key: "lockedColumns",
+      value() {
+        return '';
+      }
+    }, {
+      kind: "field",
+      key: "newRows",
+      value() {
+        return new WeakSet();
+      }
+    }, {
+      kind: "method",
+      key: "isCellLocked",
+      value: function isCellLocked(item, field) {
+        if (this.newRows.has(item)) return false;
+        const toList = v => String(v || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+        const f = String(field).toLowerCase();
+        return toList(this.lockedColumns).includes(f) || toList(item._lockedCols).includes(f);
+      }
+    }, {
+      kind: "field",
+      decorators: [e({
+        type: String
+      })],
       key: "readonly",
       value() {
         return false;
@@ -758,7 +790,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
                 >
                   ${this.columns.map(column => y`
                       <td>
-                        ${this.editMode && this.selectedRow === item ? y`<input
+                        ${this.editMode && this.selectedRow === item && !this.isCellLocked(item, column.field) ? y`<input
                               type="text"
                               .value="${item[column.field]}"
                               class="table-cell-input input-styled"
@@ -783,7 +815,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
           }
         }}"
                               ?disabled=${!!this.readonly}
-                            />` : y`<span class="table-cell-value"
+                            />` : y`<span class="table-cell-value ${this.isCellLocked(item, column.field) ? "locked-cell" : ""}"
                               >${item[column.field]}</span
                             >`}
                       </td>
@@ -932,6 +964,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         this.updatePageData();
         const newRow = {};
         this.columns.forEach(column => newRow[column.field] = "");
+        this.newRows.add(newRow);
         this.data.push(newRow);
         this.selectedRow = newRow;
         this.editMode = true;

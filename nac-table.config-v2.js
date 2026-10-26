@@ -8,7 +8,7 @@ const config = {
     required: false,
     description: true
   },
-  version: '1.1',
+  version: '1.2',
   properties: {
     collection: {
       type: 'string',
@@ -18,6 +18,10 @@ const config = {
       type: 'integer',
       title: 'Máximo de filas (0 = sin límite)',
       defaultValue: 0
+    },
+    lockedColumns: {
+      type: 'string',
+      title: 'Columnas bloqueadas (separadas por comas)'
     },
     value: {
       type: 'string',
