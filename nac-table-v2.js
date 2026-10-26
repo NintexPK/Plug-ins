@@ -1,5 +1,5 @@
 import { i, _ as _decorate, s, e, y, a as e$1 } from './query-assigned-elements-8a604587.js';
-
+ 
 const baseStyle = i`
   :host {
     height: 100%;
@@ -22,7 +22,7 @@ table {
   color: rgba(0, 0, 0, 0.87);
   background-color: #fff;
 }
-
+ 
 th,
 td {
   padding: 0 0.5rem;
@@ -31,7 +31,7 @@ td {
   vertical-align: middle;
   position: relative;
 }
-
+ 
 th {
   font-weight: bold;
   height: 3.5rem;
@@ -41,54 +41,54 @@ th {
 thead tr {
   background-color: #fff !important;
 }
-
+ 
 tr {
   background-color: #fff;
   height: 3.25rem;
 }
-
+ 
 tr:hover {
   background-color: rgba(0, 0, 0, 0.04);
 }
-
+ 
 th {
   font-weight: bold;
   cursor: pointer;
 }
-
+ 
 .table-row.selected {
   background-color: rgba(25, 118, 210, 0.08);
 }
-
+ 
 .locked-cell {
   color: rgba(0, 0, 0, 0.45);
 }
-
+ 
 .table-row.edit .table-cell-value.locked-cell {
   visibility: visible;
 }
-
+ 
 .table-row.locked {
   color: rgba(0, 0, 0, 0.45);
   cursor: not-allowed;
 }
-
+ 
 .table-row.locked:hover {
   background-color: #fff;
 }
-
+ 
 .table-row.selected:hover {
   background-color: rgba(25, 118, 210, 0.12);
 }
-
+ 
 .table-cell-value {
   visibility: visible;
 }
-
+ 
 .table-row.edit .table-cell-value {
   visibility: hidden;
 }
-
+ 
 .table-cell-input {
   position: absolute;
   left: 4px;
@@ -99,29 +99,29 @@ th {
   font-size: inherit;
   color: inherit;
 }
-
+ 
 .dsc {
   transform: rotate(180deg);
 }
-
+ 
 .flex-item {
   display: flex;
 }
-
+ 
 .top-panel {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
+ 
 .margin-left-4 {
   margin-left: 0.25rem;
 }
-
+ 
 .opacity {
   opacity: 1;
 }
-
+ 
 /*  search start*/
 .search-wrapper {
   height: 3.5rem;
@@ -144,7 +144,7 @@ th {
   color: rgba(0, 0, 0, 0.87);
   font-size: 1rem;
 }
-
+ 
 .input-styled {
   border-radius: 0.25rem;
   box-sizing: border-box;
@@ -152,17 +152,17 @@ th {
   border-color: rgba(0, 0, 0, 0.23);
   outline: none;
 }
-
+ 
 .input-styled:hover {
   border-color: rgba(0, 0, 0, 0.87);
 }
-
+ 
 .input-styled:focus {
   box-shadow: 0 0 0 1px rgb(25, 118, 210);
   border-color: rgb(25, 118, 210);
 }
 /* search end */
-
+ 
 /* Pagination-start */
 .pagination {
   color: rgba(0, 0, 0, 0.87);
@@ -191,18 +191,18 @@ th {
   cursor: pointer;
   color: rgba(0, 0, 0, 0.54);
 }
-
+ 
 .pagination-button:hover {
   background-color: rgba(0, 0, 0, 0.04);
 }
-
+ 
 .pagination-button:disabled {
   cursor: default;
   background-color: transparent;
   color: rgba(0, 0, 0, 0.3);
 }
-
-
+ 
+ 
 @media (max-width: 872px) {
   .top-panel {
     flex-direction: column;
@@ -211,8 +211,8 @@ th {
     margin-bottom: 1rem;
   }
 }
-
-
+ 
+ 
 @media (max-width: 767px) {
   th:not(:nth-of-type(1)):not(:nth-of-type(2)):not(:nth-of-type(3)),
   td:not(:nth-of-type(1)):not(:nth-of-type(2)):not(:nth-of-type(3)) {
@@ -221,13 +221,13 @@ th {
 }
 `;
 const styles = [baseStyle, NacTableStyles];
-
+ 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */console.warn("The main 'lit-element' module entrypoint is deprecated. Please update your imports to use the 'lit' package: 'lit' and 'lit/decorators.ts' or import from 'lit-element/lit-element.ts'. See https://lit.dev/msg/deprecated-import-path for more information.");
-
+ 
 _decorate([e$1("lit-toolbar-v2")], function (_initialize, _LitElement) {
   class LitToolbar extends _LitElement {
     constructor(...args) {
@@ -284,7 +284,7 @@ _decorate([e$1("lit-toolbar-v2")], function (_initialize, _LitElement) {
         justify-content: space-between;
         align-items: center;
       }
-
+ 
       button {
         background-color: transparent;
         cursor: pointer;
@@ -295,21 +295,21 @@ _decorate([e$1("lit-toolbar-v2")], function (_initialize, _LitElement) {
         padding: 8px;
         margin: 0;
       }
-
+ 
       .delete {
         color: #d32f2f;
       }
-
+ 
       button:hover {
         text-decoration: underline;
       }
-
+ 
       button:disabled {
         text-decoration: none;
         cursor: default;
         color: rgba(0, 0, 0, 0.3);
       }
-
+ 
       button > svg {
         margin-right: 2px;
       }
@@ -368,7 +368,7 @@ _decorate([e$1("lit-toolbar-v2")], function (_initialize, _LitElement) {
               d="M13.5,7A6.5,6.5 0 0,1 20,13.5A6.5,6.5 0 0,1 13.5,20H10V18H13.5C16,18 18,16 18,13.5C18,11 16,9 13.5,9H7.83L10.91,12.09L9.5,13.5L4,8L9.5,2.5L10.92,3.91L7.83,7H13.5M6,18H8V20H6V18Z"
             />
           </svg>
-
+ 
           Discard
         </button>
         <button
@@ -412,7 +412,7 @@ _decorate([e$1("lit-toolbar-v2")], function (_initialize, _LitElement) {
     }]
   };
 }, s);
-
+ 
 let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitElement) {
   class AndysTable extends _LitElement {
     constructor(...args) {
@@ -437,6 +437,21 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       key: "collection",
       value() {
         return '';
+      }
+    }, {
+      kind: "field",
+      decorators: [e({
+        type: String
+      })],
+      key: "value",
+      value() {
+        return '';
+      }
+    }, {
+      kind: "field",
+      key: "lastEmitted",
+      value() {
+        return null;
       }
     }, {
       kind: "field",
@@ -555,7 +570,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       value:
       // @property({ type: Boolean })
       // readOnly = false;
-
+ 
       function filteredData() {
         return this.data.filter(item => {
           return Object.values(item).map(val => String(val)).some(val => val.toLowerCase().includes(this.searchText.toLowerCase()));
@@ -593,13 +608,44 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       kind: "method",
       key: "updated",
       value: function updated(changedProps) {
+        // 1) Datos guardados (valor del control que Nintex restaura al editar) tienen prioridad
+        const saved = typeof this.value === "string" ? this.value.trim() : "";
+        if (changedProps.has("value") && saved && saved !== this.lastEmitted) {
+          try {
+            const parsed = this.parseCollection(saved);
+            if (Array.isArray(parsed) && parsed.length) {
+              this.data = parsed;
+              this.lastEmitted = saved;
+              this.unselect();
+              this.updatePageData();
+              return;
+            }
+          } catch (e) {
+            console.error("Error parsing saved value: ", e);
+          }
+        }
+        // 2) Si ya hay datos guardados, la plantilla (JSONData) no los sobrescribe
+        if (changedProps.has("collection") && saved && this.data.length) return;
         if (changedProps.has("collection")) {
           try {
-            this.data = JSON.parse(this.collection);
+            this.data = this.parseCollection(this.collection);
             this.updatePageData();
           } catch (e) {
             console.error("Error parsing table data: ", e);
           }
+        }
+      }
+    }, {
+      kind: "method",
+      key: "parseCollection",
+      value: function parseCollection(text) {
+        const raw = String(text || '').trim();
+        if (!raw) return [];
+        try {
+          return JSON.parse(raw);
+        } catch (err) {
+          // Permite JSON escrito con comillas simples (necesario en fórmulas de Nintex)
+          return JSON.parse(raw.replace(/'/g, '"'));
         }
       }
     }, {
@@ -647,7 +693,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
           this.updatePageData();
         }
       }
-
+ 
       // Handle edit event for a cell
     }, {
       kind: "method",
@@ -698,7 +744,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         class="search-input input-styled"
         id="search-input"
         placeholder="Search..."
-
+ 
         @input=${event => {
           this.searchText = event.target.value;
           this.updatePageData();
@@ -732,7 +778,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         const end = start + this.pageSize;
         this.pageData = this.sortedData.slice(start, end);
         return y`
-
+ 
       <div class="table-wrapper">
         <table>
           <thead>
@@ -916,7 +962,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       <script>
         
   const nacTable = document.querySelector("andys-table-v2");
-
+ 
   
 </script>
     `;
@@ -1036,6 +1082,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       key: "onChange",
       value: function onChange(e) {
         const value = typeof e === "string" ? e : JSON.stringify(e);
+        this.lastEmitted = value;
         const args = {
           bubbles: true,
           cancelable: false,
@@ -1067,5 +1114,5 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
     }]
   };
 }, s);
-
+ 
 export { AndysTable };
