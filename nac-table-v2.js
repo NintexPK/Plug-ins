@@ -22,7 +22,6 @@ table {
   color: rgba(0, 0, 0, 0.87);
   background-color: #fff;
 }
-
 th,
 td {
   padding: 0 0.5rem;
