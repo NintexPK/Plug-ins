@@ -5,13 +5,45 @@ const baseStyle = i`
     height: 100%;
     width: 100%;
     display: block;
+
+    /* ===== Tema =====
+       Orden de prioridad de cada color:
+         1) --nac-*  -> para cambiar algo en un formulario concreto
+         2) --pk-*   -> variables corporativas del CSS del formulario
+         3) valor neutro si no existe ninguna de las dos            */
+    --_ink: var(--nac-ink, var(--pk-ink, rgba(0, 0, 0, 0.87)));
+    --_muted: var(--nac-muted, var(--pk-muted, rgba(0, 0, 0, 0.54)));
+    --_bg: var(--nac-bg, var(--pk-white, #fff));
+    --_line: var(--nac-line, var(--pk-line, #ccc));
+    --_line-strong: var(--nac-line-strong, var(--pk-line-strong, rgba(0, 0, 0, 0.23)));
+    --_line-hover: var(--nac-line-hover, var(--pk-line-hover, rgba(0, 0, 0, 0.87)));
+    --_primary: var(--nac-primary, var(--pk-primary, rgb(25, 118, 210)));
+    --_primary-dark: var(--nac-primary-dark, var(--pk-primary-dark, rgb(13, 71, 161)));
+    --_primary-soft: var(--nac-primary-soft, var(--pk-primary-soft, rgba(25, 118, 210, 0.08)));
+    --_focus-ring: var(--nac-focus-ring, var(--pk-focus-ring, 0 0 0 1px rgb(25, 118, 210)));
+    --_header-bg: var(--nac-header-bg, var(--pk-surface-tint, #fff));
+    --_header-fg: var(--nac-header-fg, var(--pk-ink, rgba(0, 0, 0, 0.87)));
+    --_header-border: var(--nac-header-border, var(--pk-primary, #ccc));
+    --_hover-bg: var(--nac-hover-bg, rgba(0, 0, 0, 0.03));
+    --_selected-bg: var(--nac-selected-bg, var(--pk-primary-soft, rgba(25, 118, 210, 0.08)));
+    --_selected-fg: var(--nac-selected-fg, currentColor);
+    --_selected-border: var(--nac-selected-border, var(--pk-primary, transparent));
+    --_locked-fg: var(--nac-locked-fg, var(--pk-disabled-fg, rgba(0, 0, 0, 0.45)));
+    --_disabled-fg: var(--nac-disabled-fg, var(--pk-line-hover, rgba(0, 0, 0, 0.3)));
+    --_danger: var(--nac-danger, var(--pk-primary, #d32f2f));
+    --_toolbar-bg: var(--nac-toolbar-bg, var(--pk-surface-tint, rgba(0, 0, 0, 0.04)));
+    --_radius: var(--nac-radius, var(--pk-radius, 4px));
+    --_radius-sm: var(--nac-radius-sm, var(--pk-radius-sm, 4px));
+
+    font-family: var(--nac-font, var(--pk-font)); /* si no hay ninguna, hereda la del formulario */
+    color: var(--_ink);
   }
 `;
 const NacTableStyles = i`
 .table-wrapper {
-  border-radius: 4px;
+  border-radius: var(--_radius);
   overflow: hidden;
-  border: 1px solid #ccc;
+  border: 1px solid var(--_line);
 }
 table {
   width: 100%;
@@ -19,76 +51,76 @@ table {
   border-spacing: 0;
   font-family: inherit;
   font-size: 0.875rem;
-  color: rgba(0, 0, 0, 0.87);
-  background-color: #fff;
+  color: var(--_ink);
+  background-color: var(--_bg);
 }
- 
+
 th,
 td {
   padding: 0 0.5rem;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid var(--_line);
   text-align: left;
   vertical-align: middle;
   position: relative;
 }
- 
+
 th {
-  font-weight: bold;
+  font-weight: 700;
   height: 3.5rem;
   text-transform: capitalize;
   border-top: none;
-}
-thead tr {
-  background-color: #fff !important;
-}
- 
-tr {
-  background-color: #fff;
-  height: 3.25rem;
-}
- 
-tr:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-}
- 
-th {
-  font-weight: bold;
+  border-bottom: 2px solid var(--_header-border);
+  color: var(--_header-fg);
   cursor: pointer;
 }
- 
-.table-row.selected {
-  background-color: rgba(25, 118, 210, 0.08);
+thead tr {
+  background-color: var(--_header-bg) !important;
 }
- 
+
+tr {
+  background-color: var(--_bg);
+  height: 3.25rem;
+}
+
+tbody tr:hover {
+  background-color: var(--_hover-bg);
+}
+
+.table-row.selected,
+.table-row.selected:hover {
+  background-color: var(--_selected-bg);
+  color: var(--_selected-fg);
+}
+
+.table-row.selected td:first-child {
+  box-shadow: inset 3px 0 0 var(--_selected-border);
+}
+
 .locked-cell {
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--_locked-fg);
 }
- 
+
 .table-row.edit .table-cell-value.locked-cell {
   visibility: visible;
 }
- 
+
 .table-row.locked {
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--_locked-fg);
   cursor: not-allowed;
 }
- 
+
 .table-row.locked:hover {
-  background-color: #fff;
+  background-color: var(--_bg);
 }
- 
-.table-row.selected:hover {
-  background-color: rgba(25, 118, 210, 0.12);
-}
- 
+
 .table-cell-value {
   visibility: visible;
 }
- 
+
 .table-row.edit .table-cell-value {
   visibility: hidden;
 }
- 
+
 .table-cell-input {
   position: absolute;
   left: 4px;
@@ -98,30 +130,36 @@ th {
   padding: 0 0.5rem;
   font-size: inherit;
   color: inherit;
+  background: var(--_bg);
+  border-radius: var(--_radius-sm);
 }
- 
+
 .dsc {
   transform: rotate(180deg);
 }
- 
+
 .flex-item {
   display: flex;
 }
- 
+
+.flex-item svg {
+  fill: var(--_primary);
+}
+
 .top-panel {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
- 
+
 .margin-left-4 {
   margin-left: 0.25rem;
 }
- 
+
 .opacity {
   opacity: 1;
 }
- 
+
 /*  search start*/
 .search-wrapper {
   height: 3.5rem;
@@ -134,38 +172,43 @@ th {
   top: 50%;
   transform: translateY(-50%);
   left: 1rem;
-  color: rgba(0, 0, 0, 0.54);
+  color: var(--_muted);
+  fill: currentColor;
 }
 .search-input {
   height: 3.5rem;
   width: 100%;
   padding: 1.03125rem 0.875rem;
   padding-left: 3rem;
-  color: rgba(0, 0, 0, 0.87);
+  color: var(--_ink);
+  background: var(--_bg);
+  font-family: inherit;
   font-size: 1rem;
 }
- 
+
 .input-styled {
-  border-radius: 0.25rem;
+  border-radius: var(--_radius);
   box-sizing: border-box;
   border: 1px solid;
-  border-color: rgba(0, 0, 0, 0.23);
+  border-color: var(--_line-strong);
   outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
- 
+
 .input-styled:hover {
-  border-color: rgba(0, 0, 0, 0.87);
+  border-color: var(--_line-hover);
 }
- 
+
 .input-styled:focus {
-  box-shadow: 0 0 0 1px rgb(25, 118, 210);
-  border-color: rgb(25, 118, 210);
+  box-shadow: var(--_focus-ring);
+  border-color: var(--_primary);
 }
 /* search end */
- 
+
 /* Pagination-start */
 .pagination {
-  color: rgba(0, 0, 0, 0.87);
+  color: var(--_ink);
   font-size: 0.875rem;
   display: flex;
   justify-content: flex-end;
@@ -189,20 +232,20 @@ th {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: rgba(0, 0, 0, 0.54);
+  color: var(--_primary);
 }
- 
+
 .pagination-button:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: var(--_primary-soft);
 }
- 
+
 .pagination-button:disabled {
   cursor: default;
   background-color: transparent;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--_disabled-fg);
 }
- 
- 
+
+
 @media (max-width: 872px) {
   .top-panel {
     flex-direction: column;
@@ -211,8 +254,8 @@ th {
     margin-bottom: 1rem;
   }
 }
- 
- 
+
+
 @media (max-width: 767px) {
   th:not(:nth-of-type(1)):not(:nth-of-type(2)):not(:nth-of-type(3)),
   td:not(:nth-of-type(1)):not(:nth-of-type(2)):not(:nth-of-type(3)) {
@@ -271,10 +314,11 @@ _decorate([e$1("lit-toolbar-v2")], function (_initialize, _LitElement) {
       value: function styles() {
         return i`
       :host {
-        background-color: rgba(0, 0, 0, 0.04);
-        border-radius: 4px;
+        background-color: var(--_toolbar-bg, rgba(0, 0, 0, 0.04));
+        border-radius: var(--_radius, 4px);
         width: 100%;
         max-width: 420px;
+        font-family: inherit;
       }
       .button-wrapper {
         box-sizing: border-box;
@@ -284,32 +328,41 @@ _decorate([e$1("lit-toolbar-v2")], function (_initialize, _LitElement) {
         justify-content: space-between;
         align-items: center;
       }
- 
+
       button {
         background-color: transparent;
         cursor: pointer;
         display: flex;
         align-items: center;
         border: none;
+        border-radius: var(--_radius-sm, 4px);
         outline: none;
         padding: 8px;
         margin: 0;
+        font-family: inherit;
+        font-weight: 600;
+        color: var(--nac-btn-color, var(--_muted, rgba(0, 0, 0, 0.87)));
+        transition: color 0.15s ease, background-color 0.15s ease;
       }
- 
+
       .delete {
-        color: #d32f2f;
+        color: var(--_danger, #d32f2f);
       }
- 
-      button:hover {
-        text-decoration: underline;
+
+      button:hover:not(:disabled) {
+        color: var(--_primary-dark, rgb(13, 71, 161));
+        background-color: var(--_primary-soft, rgba(25, 118, 210, 0.08));
       }
- 
+
+      button:focus-visible {
+        box-shadow: var(--_focus-ring, 0 0 0 2px rgb(25, 118, 210));
+      }
+
       button:disabled {
-        text-decoration: none;
         cursor: default;
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--_disabled-fg, rgba(0, 0, 0, 0.3));
       }
- 
+
       button > svg {
         margin-right: 2px;
       }
@@ -1088,6 +1141,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
           this.tempEditRowData = null;
           this.tempRow = null;
           this.userEdited = true;
+          this.unselect(); // la fila deja de quedar marcada tras guardar
           this.updatePageData();
           this.onChange(this.data);
         }
