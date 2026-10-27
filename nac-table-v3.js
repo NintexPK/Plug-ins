@@ -707,7 +707,7 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
         // Etapas no indicadas (o sin regla) = todo editable.
         const base = { rowRule: null, months: this.toMonths(this.editableMonths) };
         const stage = String(this.stage || '').trim().toLowerCase();
-        const text = String(this.stageRules || '').trim();
+        const text = this.decodeText(this.stageRules);
         if (!stage || !text) return base;
         let rules;
         try {
@@ -819,15 +819,37 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
       kind: "method",
       key: "getColumnRules",
       value: function getColumnRules() {
-        const t = String(this.columnRules || '').trim();
-        if (!t) return {};
+        // Reglas por defecto (siempre activas): Year de 4 cifras y Type como desplegable Actual/Forecast.
+        // "Reglas de columnas" solo añade o cambia reglas.
+        const rules = {
+          Year: { tipo: 'año' },
+          Type: { opciones: ['Actual', 'Forecast'] }
+        };
+        const t = this.decodeText(this.columnRules);
+        if (!t) return rules;
         try {
           const r = this.parseCollection(t);
-          return r && typeof r === 'object' && !Array.isArray(r) ? r : {};
+          if (r && typeof r === 'object' && !Array.isArray(r)) {
+            Object.keys(r).forEach(k => {
+              const existing = Object.keys(rules).find(x => x.toLowerCase() === k.toLowerCase());
+              if (existing && existing !== k) delete rules[existing];
+              rules[k] = r[k];
+            });
+          }
         } catch (err) {
-          console.warn("NAC table: 'Reglas de columnas' no es un JSON válido:", t.slice(0, 80));
-          return {};
+          console.warn("NAC table: 'Reglas de columnas' no es un JSON válido, se usan las reglas por defecto:", t.slice(0, 80));
         }
+        return rules;
+      }
+    }, {
+      kind: "method",
+      key: "decodeText",
+      value: function decodeText(v) {
+        // Por si Nintex entrega las comillas codificadas como entidades HTML
+        return String(v || '').trim()
+          .replace(/&#0*39;|&apos;/gi, "'")
+          .replace(/&quot;|&#0*34;/gi, '"')
+          .replace(/&amp;/gi, '&');
       }
     }, {
       kind: "method",
@@ -860,6 +882,14 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
         const bad = new Set();
         const isNew = this.newRows.has(item);
         for (const c of this.columns) {
+          // Los meses solo admiten números (vacío permitido), sin necesidad de configurarlo
+          if (this.monthIndex(c.field) >= 0) {
+            const mv = String(row[c.field] ?? '').trim();
+            if (mv && !/^-?\d+([.,]\d+)?$/.test(mv)) {
+              errors.push(`${c.label}: debe ser un número.`);
+              bad.add(c.field);
+            }
+          }
           const rule = this.ruleFor(c.field);
           if (!rule) continue;
           const v = String(row[c.field] ?? '').trim();
@@ -1096,8 +1126,8 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
         try {
           return JSON.parse(raw);
         } catch (err) {
-          // Permite JSON escrito con comillas simples (necesario en fórmulas de Nintex)
-          return JSON.parse(raw.replace(/'/g, '"'));
+          // Permite comillas simples y tipográficas (‘ ’ “ ”), habituales al escribir en Nintex
+          return JSON.parse(raw.replace(/[\u2018\u2019\u201C\u201D']/g, '"'));
         }
       }
     }, {
