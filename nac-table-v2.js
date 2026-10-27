@@ -35,7 +35,7 @@ const baseStyle = i`
     --_radius: var(--nac-radius, var(--pk-radius, 4px));
     --_radius-sm: var(--nac-radius-sm, var(--pk-radius-sm, 4px));
 
-    font-family: var(--nac-font, var(--pk-font));
+    font-family: var(--nac-font, var(--pk-font)); /* si no hay ninguna, hereda la del formulario */
     color: var(--_ink);
   }
 `;
@@ -508,6 +508,25 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       }
     }, {
       kind: "field",
+      key: "userEdited",
+      value() {
+        return false;
+      }
+    }, {
+      kind: "field",
+      key: "tempRow",
+      value() {
+        return null;
+      }
+    }, {
+      kind: "method",
+      key: "firstUpdated",
+      value: function firstUpdated() {
+        // No se envía nada al cargar: el valor guardado solo se modifica cuando el
+        // usuario pulsa Save o Delete en la tabla (evita sobrescribir lo guardado con la plantilla)
+      }
+    }, {
+      kind: "field",
       decorators: [e({
         type: Number
       })],
@@ -662,7 +681,9 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       key: "updated",
       value: function updated(changedProps) {
         // 1) Datos guardados (valor del control que Nintex restaura al editar) tienen prioridad
-        const saved = typeof this.value === "string" ? this.value.trim() : "";
+        if (this.userEdited) return; // lo que el usuario ha editado no se sobrescribe
+        // Solo cuenta como guardado si es JSON de verdad (Nintex puede pasar "__splf_Campo" sin resolver)
+        const saved = this.usableJson(this.value);
         if (changedProps.has("value") && saved && saved !== this.lastEmitted) {
           try {
             const parsed = this.parseCollection(saved);
@@ -680,13 +701,26 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         // 2) Si ya hay datos guardados, la plantilla (JSONData) no los sobrescribe
         if (changedProps.has("collection") && saved && this.data.length) return;
         if (changedProps.has("collection")) {
+          const template = this.usableJson(this.collection);
+          if (!template) {
+            if (this.collection) console.warn("NAC table: JSONData no es un JSON válido (¿referencia de Nintex sin resolver?):", String(this.collection).slice(0, 60));
+            return;
+          }
           try {
-            this.data = this.parseCollection(this.collection);
+            this.data = this.parseCollection(template);
             this.updatePageData();
           } catch (e) {
             console.error("Error parsing table data: ", e);
           }
         }
+      }
+    }, {
+      kind: "method",
+      key: "usableJson",
+      value: function usableJson(text) {
+        // Devuelve el texto solo si parece JSON (empieza por [ o {); si no, cadena vacía
+        const t = typeof text === "string" ? text.trim() : "";
+        return /^[\[{]/.test(t) ? t : "";
       }
     }, {
       kind: "method",
@@ -755,9 +789,9 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         field,
         value
       }) {
-        if (this.editCell) {
-          const found = this.tempEditRowData || this.pageData.find(item => item === this.editCell?.row);
-          if (!found) return;
+        if (this.editCell && this.selectedRow) {
+          const found = this.tempEditRowData && this.tempRow === this.selectedRow ? this.tempEditRowData : this.selectedRow;
+          this.tempRow = this.selectedRow;
           const editedRow = {
             ...found
           };
@@ -1063,6 +1097,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         this.updatePageData();
         const newRow = {};
         this.columns.forEach(column => newRow[column.field] = "");
+        this.userEdited = true;
         this.newRows.add(newRow);
         this.data.push(newRow);
         this.selectedRow = newRow;
@@ -1077,6 +1112,8 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       key: "onEditRow",
       value: function onEditRow() {
         if (this.selectedRow) {
+          this.tempEditRowData = null;
+          this.tempRow = null;
           this.editMode = true;
           this.editCell = {
             columnName: "",
@@ -1091,6 +1128,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       key: "onDeleteRow",
       value: function onDeleteRow() {
         if (this.selectedRow) {
+          this.userEdited = true;
           const index = this.data.indexOf(this.selectedRow);
           this.data.splice(index, 1);
           this.unselect();
@@ -1111,6 +1149,9 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         if (this.editMode) {
           this.editMode = false;
           this.saveSelectedRow();
+          this.tempEditRowData = null;
+          this.tempRow = null;
+          this.userEdited = true;
           this.unselect(); // la fila deja de quedar marcada tras guardar
           this.updatePageData();
           this.onChange(this.data);
@@ -1123,7 +1164,8 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         if (this.selectedRow) {
           const editedRow = this.pageData.find(item => item === this.selectedRow);
           if (editedRow) {
-            this.columns.forEach(column => {});
+            this.tempEditRowData = null;
+            this.tempRow = null;
             this.editMode = false;
             this.editCell = null;
             this.requestUpdate();
@@ -1150,11 +1192,7 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       kind: "method",
       key: "onLoad",
       value: function onLoad(e) {
-        console.info("data: " + this.data);
-        var dataCheck = this.data.toString();
-        if (dataCheck == null || dataCheck == '') {
-          this.onChange(this.collection);
-        }
+        // Ya no envía el texto en bruto de JSONData (ver firstUpdated)
       }
     }, {
       kind: "method",
