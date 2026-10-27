@@ -685,7 +685,8 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
       value: function updated(changedProps) {
         // 1) Datos guardados (valor del control que Nintex restaura al editar) tienen prioridad
         if (this.userEdited) return; // lo que el usuario ha editado no se sobrescribe
-        const saved = typeof this.value === "string" ? this.value.trim() : "";
+        // Solo cuenta como guardado si es JSON de verdad (Nintex puede pasar "__splf_Campo" sin resolver)
+        const saved = this.usableJson(this.value);
         if (changedProps.has("value") && saved && saved !== this.lastEmitted) {
           try {
             const parsed = this.parseCollection(saved);
@@ -703,13 +704,26 @@ let AndysTable = _decorate([e$1('andys-table-v2')], function (_initialize, _LitE
         // 2) Si ya hay datos guardados, la plantilla (JSONData) no los sobrescribe
         if (changedProps.has("collection") && saved && this.data.length) return;
         if (changedProps.has("collection")) {
+          const template = this.usableJson(this.collection);
+          if (!template) {
+            if (this.collection) console.warn("NAC table: JSONData no es un JSON válido (¿referencia de Nintex sin resolver?):", String(this.collection).slice(0, 60));
+            return;
+          }
           try {
-            this.data = this.parseCollection(this.collection);
+            this.data = this.parseCollection(template);
             this.updatePageData();
           } catch (e) {
             console.error("Error parsing table data: ", e);
           }
         }
+      }
+    }, {
+      kind: "method",
+      key: "usableJson",
+      value: function usableJson(text) {
+        // Devuelve el texto solo si parece JSON (empieza por [ o {); si no, cadena vacía
+        const t = typeof text === "string" ? text.trim() : "";
+        return /^[\[{]/.test(t) ? t : "";
       }
     }, {
       kind: "method",
