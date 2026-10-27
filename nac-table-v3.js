@@ -604,51 +604,6 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
     }, {
       kind: "field",
       decorators: [e({
-        type: String
-      })],
-      key: "uniqueColumns",
-      value() {
-        return '';
-      }
-    }, {
-      kind: "field",
-      decorators: [e({
-        type: String
-      })],
-      key: "editableRows",
-      value() {
-        return '';
-      }
-    }, {
-      kind: "field",
-      decorators: [e({
-        type: String
-      })],
-      key: "currentMonthRows",
-      value() {
-        return 'Type:Actual';
-      }
-    }, {
-      kind: "field",
-      decorators: [e({
-        type: String
-      })],
-      key: "yearColumn",
-      value() {
-        return 'Year';
-      }
-    }, {
-      kind: "field",
-      decorators: [e({
-        type: String
-      })],
-      key: "referenceDate",
-      value() {
-        return '';
-      }
-    }, {
-      kind: "field",
-      decorators: [e({
         type: Number
       })],
       key: "editableMonths",
@@ -672,6 +627,23 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
       key: "stageRules",
       value() {
         return '';
+      }
+    }, {
+      kind: "field",
+      decorators: [e({
+        type: Boolean
+      })],
+      key: "readOnly",
+      value() {
+        return false;
+      }
+    }, {
+      kind: "method",
+      key: "isReadOnly",
+      value: function isReadOnly() {
+        // "Read-only" estándar de Nintex (propiedad o regla del formulario)
+        const ro = v => v === true || String(v).toLowerCase() === 'true';
+        return ro(this.readOnly) || ro(this.readonly);
       }
     }, {
       kind: "field",
@@ -739,14 +711,19 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
       }
     }, {
       kind: "method",
+      key: "knownTypes",
+      value: function knownTypes() {
+        // Tipos posibles: opciones de Type en "Reglas de columnas" o, si no hay, Actual y Forecast
+        const r = this.ruleFor('Type');
+        return r && Array.isArray(r.opciones) && r.opciones.length ? r.opciones.map(String) : ['Actual', 'Forecast'];
+      }
+    }, {
+      kind: "method",
       key: "effectiveRule",
       value: function effectiveRule() {
-        // Por defecto todo editable. "Edición por etapa" solo restringe las etapas que aparecen en ella
-        const typeCol = (this.parseRowRule(this.currentMonthRows) || {}).column || 'Type';
-        const base = {
-          rowRule: this.parseRowRule(this.editableRows),
-          months: this.toMonths(this.editableMonths)
-        };
+        // "Solo lectura por etapa": cada etapa indica qué tipos quedan bloqueados.
+        // Etapas no indicadas (o sin regla) = todo editable.
+        const base = { rowRule: null, months: this.toMonths(this.editableMonths) };
         const stage = String(this.stage || '').trim().toLowerCase();
         const text = String(this.stageRules || '').trim();
         if (!stage || !text) return base;
@@ -754,7 +731,7 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
         try {
           rules = this.parseCollection(text);
         } catch (err) {
-          console.warn("NAC table: 'Edición por etapa' no es un JSON válido:", text.slice(0, 80));
+          console.warn("NAC table: 'Solo lectura por etapa' no es un JSON válido:", text.slice(0, 80));
           return base;
         }
         if (!rules || typeof rules !== 'object' || Array.isArray(rules)) return base;
@@ -766,15 +743,14 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
         }
         if (key === undefined) return base;
         const r = rules[key];
-        const tipos = r && typeof r === 'object' ? r.tipos : r;
-        const t = String(tipos ?? '').trim();
-        let rowRule;
-        if (['*', 'todo', 'todos'].includes(t.toLowerCase())) rowRule = null;
-        else if (!t || t.toLowerCase() === 'ninguno') rowRule = { column: typeCol, values: [] };
-        else if (t.includes(':')) rowRule = this.parseRowRule(t);
-        else rowRule = { column: typeCol, values: this.toList(t) };
-        const months = r && typeof r === 'object' && r.meses !== undefined ? this.toMonths(r.meses) : base.months;
-        return { rowRule, months };
+        const isObj = r && typeof r === 'object';
+        const blockedText = String((isObj ? r.tipos : r) ?? '').trim().toLowerCase();
+        const months = isObj && r.meses !== undefined ? this.toMonths(r.meses) : base.months;
+        if (!blockedText || blockedText === 'ninguno') return { rowRule: null, months };
+        const all = this.knownTypes();
+        const blocked = ['todo', 'todos', '*'].includes(blockedText) ? all.map(t => t.toLowerCase()) : this.toList(blockedText);
+        const allowed = all.map(t => t.toLowerCase()).filter(t => !blocked.includes(t));
+        return { rowRule: { column: 'Type', values: allowed }, months };
       }
     }, {
       kind: "method",
@@ -799,11 +775,6 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
       key: "referenceNow",
       value: function referenceNow() {
         // Fecha de referencia pasada desde Nintex; si no hay o no es válida, la fecha actual
-        const raw = String(this.referenceDate || '').trim();
-        if (raw) {
-          const d = new Date(raw);
-          if (!isNaN(d.getTime())) return d;
-        }
         return new Date();
       }
     }, {
@@ -824,14 +795,14 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
       key: "isMonthLocked",
       value: function isMonthLocked(row, field) {
         // "Filas limitadas al mes actual" (ej. "Type:Actual"): solo mes actual/anterior del año correspondiente
-        const rule = this.parseRowRule(this.currentMonthRows);
+        const rule = { column: 'Type', values: ['actual'] }; // el límite de meses solo aplica a Actual
         const m = this.monthIndex(field);
         const months = this.effectiveRule().months;
         if (!rule || m < 0 || !months) return false; // sin límite configurado: todos los meses editables
         // Fila nueva sin tipo elegido todavía: meses bloqueados hasta elegirlo
         if (!String(this.cellValue(row, rule.column) ?? '').trim()) return true;
         if (!this.rowMatches(rule, row)) return false;
-        const year = String(this.cellValue(row, this.yearColumn || 'Year') ?? '').trim();
+        const year = String(this.cellValue(row, 'Year') ?? '').trim();
         return !this.allowedMonths(months).has(year + '-' + m);
       }
     }, {
@@ -943,7 +914,8 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
           bad.add(er.column);
         }
         // Sin duplicados en la combinación de "Columnas únicas"
-        const uc = String(this.uniqueColumns || '').split(',').map(x => x.trim()).filter(Boolean);
+        // Sin duplicados: no puede haber dos filas con el mismo Year y Type
+        const uc = ['Year', 'Type'].filter(col => this.columns.some(c => c.field.toLowerCase() === col.toLowerCase()));
         if (uc.length) {
           const key = r => uc.map(col => String(this.cellValue(r, col) ?? '').trim().toLowerCase()).join('|');
           const k = key(row);
@@ -1216,7 +1188,7 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
       value: function render() {
         return y`
       <div class="top-panel">
-        ${this.renderSearch()} ${this.readonly ? null : this.renderToolbar()}
+        ${this.renderSearch()} ${this.isReadOnly() ? null : this.renderToolbar()}
       </div>
       <br />
       ${this.errors.length ? y`<div class="error-msg" role="alert">
@@ -1324,7 +1296,7 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
               
                 <tr
                   @click="${() => {
-          if (this.readonly || item._locked) return;
+          if (this.isReadOnly() || item._locked) return;
           if (this.editMode && this.selectedRow !== item) {
             this.removeUnsavedNewRow();
             this.unselect();
@@ -1384,7 +1356,7 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
             this.requestUpdate();
           }
         }}"
-                              ?disabled=${!!this.readonly}
+                              ?disabled=${this.isReadOnly()}
                             />` : y`<span class="table-cell-value ${locked ? "locked-cell" : ""}"
                               >${item[column.field]}</span
                             >`}

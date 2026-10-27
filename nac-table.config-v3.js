@@ -4,11 +4,11 @@ const config = {
   groupName: 'Presales Controls',
   fallbackDisableSubmit: false,
   standardProperties: {
-    readOnly: false,
+    readOnly: true,
     required: false,
     description: true
   },
-  version: '3.0',
+  version: '3.1',
   properties: {
     collection: {
       type: 'string',
@@ -27,39 +27,17 @@ const config = {
       type: 'string',
       title: "Reglas de columnas (JSON). Ej: {'Year':{'tipo':'año'},'Type':{'opciones':['Actual','Forecast']}}"
     },
-    uniqueColumns: {
-      type: 'string',
-      title: 'Columnas que no se pueden repetir juntas (ej. Year,Type)'
-    },
     stage: {
       type: 'string',
       title: 'Etapa actual (enlazar al campo de etapa)'
     },
     stageRules: {
       type: 'string',
-      title: "Edición por etapa (JSON). Ej: {'L0':'Ninguno','L1':'Ninguno','L2':'Forecast','L3':'Actual','Submitted*':'Ninguno'}. Etapas no indicadas = todo editable"
+      title: "Solo lectura por etapa (JSON). Ej: {'L0*':'Todo','L1*':'Todo','L2*':'Actual','L3*':'Forecast','Submitted*':'Todo'}. Etapas no indicadas = todo editable"
     },
     editableMonths: {
       type: 'integer',
-      title: 'Meses editables de Actual, incluido el actual (vacío = sin límite)'
-    },
-    currentMonthRows: {
-      type: 'string',
-      title: 'Filas a las que se aplica el límite de meses (Columna:valores)',
-      defaultValue: 'Type:Actual'
-    },
-    editableRows: {
-      type: 'string',
-      title: 'Filas editables si no hay regla de etapa (Columna:valores). Vacío = todas'
-    },
-    yearColumn: {
-      type: 'string',
-      title: 'Columna del año',
-      defaultValue: 'Year'
-    },
-    referenceDate: {
-      type: 'string',
-      title: 'Fecha de referencia (vacío = hoy)'
+      title: 'Nº de meses editables Actual (incluido el actual)'
     },
     allowDelete: {
       type: 'boolean',
