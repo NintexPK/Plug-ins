@@ -8,20 +8,11 @@ const config = {
     required: false,
     description: true
   },
-  version: '3.1',
+  version: '3.2',
   properties: {
     collection: {
       type: 'string',
       title: 'JSONData (plantilla)'
-    },
-    maxRows: {
-      type: 'integer',
-      title: 'Máximo de filas (0 = sin límite)',
-      defaultValue: 0
-    },
-    lockedColumns: {
-      type: 'string',
-      title: 'Columnas solo editables al crear la fila (separadas por comas)'
     },
     columnRules: {
       type: 'string',
@@ -33,7 +24,7 @@ const config = {
     },
     stageRules: {
       type: 'string',
-      title: "Solo lectura por etapa (JSON). Ej: {'L0*':'Todo','L1*':'Todo','L2*':'Actual','L3*':'Forecast','Submitted*':'Todo'}. Etapas no indicadas = todo editable"
+      title: "Read only por etapa y fila (JSON). Ej: {'L1*':'Actual','L3*':'Forecast','Submitted*':'Todo'}"
     },
     editableMonths: {
       type: 'integer',

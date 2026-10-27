@@ -570,24 +570,6 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
       }
     }, {
       kind: "field",
-      decorators: [e({
-        type: Number
-      })],
-      key: "maxRows",
-      value() {
-        return 0;
-      }
-    }, {
-      kind: "field",
-      decorators: [e({
-        type: String
-      })],
-      key: "lockedColumns",
-      value() {
-        return '';
-      }
-    }, {
-      kind: "field",
       key: "newRows",
       value() {
         return new WeakSet();
@@ -731,7 +713,7 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
         try {
           rules = this.parseCollection(text);
         } catch (err) {
-          console.warn("NAC table: 'Solo lectura por etapa' no es un JSON válido:", text.slice(0, 80));
+          console.warn("NAC table: 'Read only por etapa y fila' no es un JSON válido:", text.slice(0, 80));
           return base;
         }
         if (!rules || typeof rules !== 'object' || Array.isArray(rules)) return base;
@@ -813,7 +795,8 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
         const f = String(field).toLowerCase();
         if (!this.newRows.has(item)) {
           if (!this.isRowEditable(item)) return true;
-          if (this.toList(this.lockedColumns).includes(f) || this.toList(item._lockedCols).includes(f)) return true;
+          // Year y Type solo se pueden escribir al crear la fila
+          if (['year', 'type'].includes(f) || this.toList(item._lockedCols).includes(f)) return true;
         }
         return this.isMonthLocked(row, field);
       }
@@ -1239,7 +1222,7 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
         @discard-row="${this.onDiscardRow}"
         .editMode="${this.editMode}"
         .hasSelectedRow="${!!this.selectedRow}"
-        .canAdd="${!this.editMode && (!this.maxRows || this.data.length < this.maxRows) && !((r => r && !r.values.length)(this.effectiveRule().rowRule))}"
+        .canAdd="${!this.editMode && !((r => r && !r.values.length)(this.effectiveRule().rowRule))}"
         .canEdit="${this.canEditRow(this.selectedRow)}"
         .canDelete="${this.allowDelete !== false && String(this.allowDelete) !== 'false'}"
       ></lit-toolbar-v3>
@@ -1496,7 +1479,6 @@ let AndysTable = _decorate([e$1('andys-table-v3')], function (_initialize, _LitE
       kind: "method",
       key: "onAddRow",
       value: function onAddRow() {
-        if (this.maxRows && this.data.length >= this.maxRows) return;
         this.searchText = "";
         this.tableSort = {
           field: "",
