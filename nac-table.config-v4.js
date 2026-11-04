@@ -8,7 +8,7 @@ const config = {
     required: false,
     description: true
   },
-  version: '4.1',
+  version: '4.3',
   properties: {
     collection: {
       type: 'string',
@@ -27,12 +27,12 @@ const config = {
       title: "Read only por etapa y fila (JSON). Ej: {'L1*':'Actual','L3*':'Forecast','Submitted*':'Todo'}"
     },
     annualized: {
-      type: 'number',
-      title: 'Annualized'
+      type: 'integer',
+      title: 'Annualized (enlazar al campo Annualized de la fila)'
     },
     rowType: {
       type: 'string',
-      title: 'Recurring benefits'
+      title: 'Tipo de fila (enlazar al campo tipo: Recurring benefits...)'
     },
     recurringTypes: {
       type: 'string',

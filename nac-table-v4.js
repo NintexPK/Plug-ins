@@ -6,10 +6,6 @@ const baseStyle = i`
     width: 100%;
     display: block;
     box-sizing: border-box;
-    /* v4: fondo blanco propio para que no se transparente el fondo del formulario */
-    background-color: var(--nac-host-bg, var(--pk-white, #fff));
-    padding: var(--nac-host-padding, 0.75rem);
-    border-radius: var(--nac-radius, var(--pk-radius, 4px));
 
     /* ===== Tema =====
        Orden de prioridad de cada color:
@@ -19,8 +15,9 @@ const baseStyle = i`
     --_ink: var(--nac-ink, var(--pk-ink, rgba(0, 0, 0, 0.87)));
     --_muted: var(--nac-muted, var(--pk-muted, rgba(0, 0, 0, 0.54)));
     --_bg: var(--nac-bg, var(--pk-white, #fff));
-    --_line: var(--nac-line, var(--pk-line, #ccc));
-    --_line-strong: var(--nac-line-strong, var(--pk-line-strong, rgba(0, 0, 0, 0.23)));
+    /* v4: bordes más marcados (ya no heredan --pk-line, que en el formulario es muy claro) */
+    --_line: var(--nac-line, #c4c4c4);
+    --_line-strong: var(--nac-line-strong, #b5b5b5);
     --_line-hover: var(--nac-line-hover, var(--pk-line-hover, rgba(0, 0, 0, 0.87)));
     --_primary: var(--nac-primary, var(--pk-primary, rgb(25, 118, 210)));
     --_primary-dark: var(--nac-primary-dark, var(--pk-primary-dark, rgb(13, 71, 161)));
@@ -307,7 +304,18 @@ const ForecastCheckStyles = i`
   border-color: var(--nac-ko, #c62828);
 }
 `;
-const styles = [baseStyle, NacTableStyles, ForecastCheckStyles];
+/* v4: contenedor con fondo blanco propio. Va dentro del shadow DOM para que
+   ningún estilo del formulario (fondos transparentes, variables --pk-*) lo anule */
+const RootStyles = i`
+.nac-root {
+  box-sizing: border-box;
+  height: 100%;
+  background-color: var(--nac-host-bg, #ffffff) !important;
+  padding: var(--nac-host-padding, 0.75rem);
+  border-radius: var(--nac-radius, 4px);
+}
+`;
+const styles = [baseStyle, NacTableStyles, ForecastCheckStyles, RootStyles];
  
 /**
  * @license
@@ -378,6 +386,8 @@ _decorate([e$1("lit-toolbar-v4")], function (_initialize, _LitElement) {
       :host {
         background-color: var(--_toolbar-bg, rgba(0, 0, 0, 0.04));
         border-radius: var(--_radius, 4px);
+        border: 1px solid var(--_line, #c4c4c4);
+        box-sizing: border-box;
         width: 100%;
         max-width: 420px;
         font-family: inherit;
@@ -1301,6 +1311,7 @@ let AndysTable = _decorate([e$1('andys-table-v4')], function (_initialize, _LitE
       key: "render",
       value: function render() {
         return y`
+      <div class="nac-root">
       <div class="top-panel">
         ${this.renderSearch()} ${this.isReadOnly() ? null : this.renderToolbar()}
       </div>
@@ -1311,6 +1322,7 @@ let AndysTable = _decorate([e$1('andys-table-v4')], function (_initialize, _LitE
           </div>` : null}
       ${this.renderForecastCheck()}
       ${this.renderTable()}
+      </div>
     `;
       }
     }, {
