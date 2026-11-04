@@ -27,7 +27,7 @@ const config = {
       title: "Read only por etapa y fila (JSON). Ej: {'L1*':'Actual','L3*':'Forecast','Submitted*':'Todo'}"
     },
     annualized: {
-      type: 'integer',
+      type: 'number',
       title: 'Annualized (enlazar al campo Annualized de la fila)'
     },
     rowType: {
