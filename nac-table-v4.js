@@ -296,11 +296,6 @@ const ForecastCheckStyles = i`
   font-size: 0.875rem;
   border: 1px solid;
 }
-.forecast-check.ok {
-  color: var(--nac-ok, #1e7e34);
-  background: var(--nac-ok-bg, #e6f4ea);
-  border-color: var(--nac-ok, #1e7e34);
-}
 .forecast-check.ko {
   color: var(--nac-ko, #c62828);
   background: var(--nac-ko-bg, #fdecea);
@@ -1320,9 +1315,8 @@ let AndysTable = _decorate([e$1('andys-table-v4')], function (_initialize, _LitE
         const c = this.forecastCheck();
         if (!c.applies) return null;
         const fmt = n => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
-        return c.ok ? y`<div class="forecast-check ok" role="status">
-            Forecast total (${fmt(c.sum)}) = Annualized (${fmt(c.annualized)})
-          </div>` : y`<div class="forecast-check ko" role="alert">
+        if (c.ok) return null; // solo se avisa cuando no coincide
+        return y`<div class="forecast-check ko" role="alert">
             <strong>La suma del Forecast (${fmt(c.sum)}) no coincide con Annualized (${fmt(c.annualized)}).</strong>
             Diferencia: ${fmt(Math.round((c.annualized - c.sum) * 100) / 100)}
           </div>`;
