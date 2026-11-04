@@ -8,7 +8,7 @@ const config = {
     required: false,
     description: true
   },
-  version: '4.3',
+  version: '4.5',
   properties: {
     collection: {
       type: 'string',
@@ -20,7 +20,7 @@ const config = {
     },
     stage: {
       type: 'string',
-      title: 'Etapa actual'
+      title: 'Etapa actual (enlazar al campo de etapa)'
     },
     stageRules: {
       type: 'string',
@@ -28,15 +28,15 @@ const config = {
     },
     annualized: {
       type: 'number',
-      title: 'Annualized (enlazar al campo Annualized de la fila)'
+      title: 'Annualized (Annualized de la fila)'
     },
     rowType: {
       type: 'string',
-      title: 'Tipo de fila (enlazar al campo tipo: Recurring benefits...)'
+      title: 'Tipo de fila (Frequency & direction de la fila)'
     },
     recurringTypes: {
       type: 'string',
-      title: 'Recurring benefits; Recurring negative impacts'
+      title: 'Tipos que se comprueban. Ej Recurring benefits; Recurring negative impacts'
     },
     editableMonths: {
       type: 'integer',

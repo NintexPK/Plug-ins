@@ -298,6 +298,11 @@ const ForecastCheckStyles = i`
   font-size: 0.875rem;
   border: 1px solid;
 }
+.forecast-check.warn {
+  color: var(--nac-warn, #b45309);
+  background: var(--nac-warn-bg, #fff4e5);
+  border-color: var(--nac-warn, #e67e22);
+}
 .forecast-check.ko {
   color: var(--nac-ko, #c62828);
   background: var(--nac-ko-bg, #fdecea);
@@ -680,8 +685,13 @@ let AndysTable = _decorate([e$1('andys-table-v4')], function (_initialize, _LitE
       value: function forecastCheck() {
         // v4: suma los meses de las filas Forecast (incluida la fila que se está editando)
         // y la compara con Annualized. Solo aplica a los tipos indicados en "Tipos recurrentes".
-        const tipos = this.toList(this.recurringTypes);
-        const tipo = String(this.rowType || '').trim().toLowerCase();
+        // Se aceptan como separador coma o punto y coma
+        const tipos = String(this.recurringTypes || '').split(/[,;]/).map(x => x.trim().toLowerCase()).filter(Boolean);
+        // El tipo puede llegar como texto, lista o objeto según el control de Nintex
+        let rt = this.rowType;
+        if (Array.isArray(rt)) rt = rt[0];
+        if (rt && typeof rt === 'object') rt = rt.value ?? rt.label ?? rt.text ?? '';
+        const tipo = String(rt ?? '').trim().toLowerCase();
         const applies = tipos.length ? tipos.includes(tipo) : this.annualized !== '' && this.annualized !== null && this.annualized !== undefined;
         if (!applies) return { applies: false, ok: true, sum: 0, annualized: 0 };
         const meses = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'june', 'jul', 'july', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -1333,9 +1343,11 @@ let AndysTable = _decorate([e$1('andys-table-v4')], function (_initialize, _LitE
         if (!c.applies) return null;
         const fmt = n => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
         if (c.ok) return null; // solo se avisa cuando no coincide
-        return y`<div class="forecast-check ko" role="alert">
-            <strong>La suma del Forecast (${fmt(c.sum)}) no coincide con Annualized (${fmt(c.annualized)}).</strong>
-            Diferencia: ${fmt(Math.round((c.annualized - c.sum) * 100) / 100)}
+        // En L3 es un error (rojo, bloquea el paso a L4); en el resto de etapas es una advertencia (naranja)
+        const esL3 = String(this.stage || '').trim().toUpperCase().startsWith('L3');
+        return y`<div class="forecast-check ${esL3 ? 'ko' : 'warn'}" role="${esL3 ? 'alert' : 'status'}">
+            <strong>The Forecast total (${fmt(c.sum)}) does not match the Annualized impact (${fmt(c.annualized)}).</strong>
+            Difference: ${fmt(Math.round((c.annualized - c.sum) * 100) / 100)}
           </div>`;
       }
     }, {
