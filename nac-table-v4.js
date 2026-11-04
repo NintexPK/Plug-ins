@@ -5,6 +5,11 @@ const baseStyle = i`
     height: 100%;
     width: 100%;
     display: block;
+    box-sizing: border-box;
+    /* v4: fondo blanco propio para que no se transparente el fondo del formulario */
+    background-color: var(--nac-host-bg, var(--pk-white, #fff));
+    padding: var(--nac-host-padding, 0.75rem);
+    border-radius: var(--nac-radius, var(--pk-radius, 4px));
 
     /* ===== Tema =====
        Orden de prioridad de cada color:

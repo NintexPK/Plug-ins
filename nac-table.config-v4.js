@@ -8,7 +8,7 @@ const config = {
     required: false,
     description: true
   },
-  version: '4.0',
+  version: '4.1',
   properties: {
     collection: {
       type: 'string',
@@ -20,23 +20,23 @@ const config = {
     },
     stage: {
       type: 'string',
-      title: 'Etapa actual (enlazar al campo de etapa)'
+      title: 'Etapa actual'
     },
     stageRules: {
       type: 'string',
       title: "Read only por etapa y fila (JSON). Ej: {'L1*':'Actual','L3*':'Forecast','Submitted*':'Todo'}"
     },
     annualized: {
-      type: 'string',
-      title: 'Annualized (enlazar al campo Annualized de la fila)'
+      type: 'number',
+      title: 'Annualized'
     },
     rowType: {
       type: 'string',
-      title: 'Tipo de fila (enlazar al campo tipo: Recurring benefits...)'
+      title: 'Recurring benefits'
     },
     recurringTypes: {
       type: 'string',
-      title: 'Tipos que se comprueban (separados por coma). Ej: Recurring benefits,Recurring costs'
+      title: 'Recurring benefits; Recurring negative impacts'
     },
     editableMonths: {
       type: 'integer',
