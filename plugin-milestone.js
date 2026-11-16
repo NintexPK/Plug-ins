@@ -469,7 +469,7 @@ class NacMilestones extends LitElement {
     const min = this.minRowsNow();
     const count = this.data.filter(r => !(this.isNew && r === this.selected)).length;
     if (min > count) issues.push(MSG.minRows(min));
-    return issues.concat(this.tableRuleIssues());
+    return [...new Set(issues.concat(this.tableRuleIssues()))]; // sin avisos repetidos
   }
 
   /* Reglas de tabla (JSON, lista). Cada regla:
