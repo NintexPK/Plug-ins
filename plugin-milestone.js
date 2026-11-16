@@ -36,6 +36,7 @@ const MSG = {
   pending: 'Please review the milestones:',
   mustExist: f => `A milestone with ${f} is required.`,
   mustBe: (f, c) => `Every milestone with ${f} must have ${c}.`,
+  mustExistWith: (f, c) => `A milestone with ${f} and ${c} is required.`,
   missingIn: (n, ls) => `${n || '(no name)'}: ${ls.join(', ')}`,
   minRows: n => `At least ${n} milestone${n > 1 ? 's are' : ' is'} required.`,
   empty: 'No milestones yet. Click "Add" to create one.',
@@ -164,6 +165,7 @@ class NacMilestones extends LitElement {
       lockedStatuses: { type: String },
       dateFormat: { type: String },
       allowDelete: { type: Boolean },
+      showWarnings: { type: Boolean },
       readOnly: { type: Boolean },
       readonly: { type: String }
     };
@@ -187,6 +189,7 @@ class NacMilestones extends LitElement {
     this.lockedStatuses = '';
     this.dateFormat = 'dd/mm/yyyy';
     this.allowDelete = true;
+    this.showWarnings = true;
     this.readOnly = false;
     this.readonly = false;
 
@@ -488,7 +491,10 @@ class NacMilestones extends LitElement {
       return [];
     }
     // Sin corchetes (Nintex los toma como variables): {'r1':{...},'r2':{...}} equivale a una lista
-    if (!Array.isArray(rules)) rules = rules && typeof rules === 'object' ? (rules.filas ? [rules] : Object.values(rules)) : [];
+    let entries;
+    if (Array.isArray(rules)) entries = rules.map((r, i) => ['r' + (i + 1), r]);
+    else if (rules && typeof rules === 'object') entries = rules.filas ? [['r1', rules]] : Object.entries(rules);
+    else entries = [];
     const rows = this.data.filter(r => !(this.editMode && r === this.selected));
     const describe = c => Object.keys(c || {}).map(k => {
       const f = this.fieldOf(k);
@@ -496,14 +502,22 @@ class NacMilestones extends LitElement {
       return `${f ? f.label : k} = ${v}`;
     }).join(' and ');
     const issues = [];
-    rules.forEach(r => {
+    this.koKeys = [];
+    entries.forEach(([key, r]) => {
       if (!r || typeof r !== 'object' || !r.filas) return;
       const when = r.cuando || {};
       if (!this.ruleApplies(when, {})) return;
       const matching = rows.filter(row => this.rowCondition(r.filas, row));
       let ok = matching.length > 0;
       if (ok && r.con) ok = matching.every(row => this.rowCondition(r.con, row));
-      if (!ok) issues.push(r.mensaje || (matching.length && r.con ? MSG.mustBe(describe(r.filas), describe(r.con)) : MSG.mustExist(describe(r.filas))));
+      if (!ok) {
+        let msg;
+        if (!r.con) msg = MSG.mustExist(describe(r.filas));
+        else if (matching.length) msg = MSG.mustBe(describe(r.filas), describe(r.con));
+        else msg = MSG.mustExistWith(describe(r.filas), describe(r.con)); // no hay ninguno: falta y además debe cumplir 'con'
+        issues.push(r.mensaje || msg);
+        this.koKeys.push(String(key).replace(/[^A-Za-z0-9]/g, ''));
+      }
     });
     return issues;
   }
@@ -637,20 +651,30 @@ class NacMilestones extends LitElement {
     // Hay un valor guardado que todavía no se ha cargado: no se envía nada para no pisarlo
     if (!this.userEdited && !this.data.length && String(this.value || '').trim() && this.value !== this.lastEmitted) return;
     if (this.isReadOnly() && !this.userEdited) return; // en solo lectura no se modifica nada
-    const sent = String(this.lastEmitted || '').includes('"_faltan"');
-    const now = this.tableIssues().length > 0;
+    const sent = (String(this.lastEmitted || '').match(/"_(faltan|ko_[A-Za-z0-9]+)":true/g) || []).sort().join('|');
+    const now = this.flags().map(f => `"${f}":true`).join('|');
     if (sent !== now) this.emit();
+  }
+
+  /* Marcas que se añaden a la primera fila para las reglas del formulario:
+     "_faltan": hay algún problema;  "_ko_<regla>": no se cumple esa regla de tabla (ej. "_ko_r3") */
+  flags() {
+    const issues = this.tableIssues();
+    if (!issues.length) return [];
+    this.tableRuleIssues(); // actualiza this.koKeys
+    return ['_faltan', ...[...new Set(this.koKeys || [])].map(k => '_ko_' + k)].sort();
   }
 
   emit() {
     let value = '';
     const rows = this.data.filter(r => !(this.isNew && r === this.selected)).map(r => ({ ...r }));
-    const ko = this.tableIssues().length > 0;
+    const marks = {};
+    this.flags().forEach(f => (marks[f] = true));
     if (rows.length) {
-      if (ko) rows[0]._faltan = true;
+      Object.assign(rows[0], marks);
       value = JSON.stringify(rows);
-    } else if (ko) {
-      value = JSON.stringify([{ _faltan: true }]); // tabla vacía pero falta algo (p. ej. el milestone Health)
+    } else if (Object.keys(marks).length) {
+      value = JSON.stringify([marks]); // tabla vacía pero falta algo (p. ej. el milestone Health)
     }
     this.lastEmitted = value;
     this.dispatchEvent(new CustomEvent('ntx-value-change', {
@@ -834,7 +858,7 @@ class NacMilestones extends LitElement {
               <strong>${MSG.cantSave}</strong>
               <ul>${this.errors.map(m => html`<li>${m}</li>`)}</ul>
             </div>` : null}
-        ${issues.length ? html`<div class="msg ko" role="status">
+        ${issues.length && this.showWarnings !== false && String(this.showWarnings) !== 'false' ? html`<div class="msg ko" role="status">
               <strong>${MSG.pending}</strong>
               <ul>${issues.map(m => html`<li>${m}</li>`)}</ul>
             </div>` : null}

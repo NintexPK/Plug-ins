@@ -52,6 +52,11 @@ const config = {
       title: 'Permitir eliminar filas',
       defaultValue: true
     },
+    showWarnings: {
+      type: 'boolean',
+      title: 'Mostrar avisos en la tabla (No = solo marcas _ko_ para las reglas del formulario)',
+      defaultValue: true
+    },
     value: {
       type: 'string',
       title: 'updatedJson',
