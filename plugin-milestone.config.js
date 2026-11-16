@@ -1,6 +1,6 @@
 const config = {
   controlName: 'Milestones table',
-  description: 'Tabla editable de milestones (nombre, tipo, estado y fecha) con reglas de obligatoriedad y solo lectura por etapa',
+  description: 'Tabla editable de milestones (nombre, descripción, tipo, estado y fecha) con reglas de obligatoriedad y solo lectura por etapa',
   groupName: 'Presales Controls',
   fallbackDisableSubmit: false,
   standardProperties: {
@@ -50,6 +50,11 @@ const config = {
     allowDelete: {
       type: 'boolean',
       title: 'Permitir eliminar filas',
+      defaultValue: true
+    },
+    hideSectionButtons: {
+      type: 'boolean',
+      title: 'Ocultar botones de la sección repetida (si el control está dentro de una para guardar en la columna)',
       defaultValue: true
     },
     value: {
