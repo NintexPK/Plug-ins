@@ -164,7 +164,6 @@ class NacMilestones extends LitElement {
       lockedStatuses: { type: String },
       dateFormat: { type: String },
       allowDelete: { type: Boolean },
-      hideSectionButtons: { type: Boolean },
       readOnly: { type: Boolean },
       readonly: { type: String }
     };
@@ -188,7 +187,6 @@ class NacMilestones extends LitElement {
     this.lockedStatuses = '';
     this.dateFormat = 'dd/mm/yyyy';
     this.allowDelete = true;
-    this.hideSectionButtons = true;
     this.readOnly = false;
     this.readonly = false;
 
@@ -574,7 +572,6 @@ class NacMilestones extends LitElement {
   /* --------------------------- ciclo de vida --------------------------- */
 
   updated(changed) {
-    if (changed.has('hideSectionButtons')) this.hideSectionButtonsNow();
     const ruleProps = ['stage', 'controlField', 'controlField2', 'requiredRules', 'tableRules', 'minRows', 'stageRules', 'lockedStatuses'];
     if (ruleProps.some(p => changed.has(p))) this.syncFlag();
     if (this.userEdited) return; // lo editado por el usuario no se sobrescribe
@@ -602,81 +599,6 @@ class NacMilestones extends LitElement {
       this.ready = true;
       this.syncFlag();
     }, 1500);
-    this.watchSection();
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    if (this.sectionObserver) this.sectionObserver.disconnect();
-  }
-
-  /* Si el control está dentro de una sección repetida (solo para guardar en la columna),
-     se ocultan los botones de esa sección: "añadir fila", "eliminar fila", etc.
-     Los botones del propio control no se tocan. Se desactiva con "Ocultar botones de la sección" = No */
-  // Sube por los contenedores del control (atravesando shadow DOM)
-  ancestors() {
-    const list = [];
-    let n = this.parentNode;
-    for (let i = 0; n && i < 60; i++) {
-      if (typeof ShadowRoot !== 'undefined' && n instanceof ShadowRoot) {
-        n = n.host;
-        continue;
-      }
-      if (n.nodeType !== 1 || n === document.body || n === document.documentElement) break;
-      list.push(n);
-      n = n.parentNode;
-    }
-    return list;
-  }
-
-  isAddRowButton(b) {
-    const t = `${b.textContent || ''} ${b.getAttribute('aria-label') || ''} ${b.getAttribute('title') || ''}`.trim();
-    return /^(\+\s*)?(add|añadir|agregar|nueva|new)\b/i.test(t) || /add (new )?row|añadir fila/i.test(t);
-  }
-
-  findSection() {
-    const anc = this.ancestors();
-    // 1) Contenedor cuyo nombre interno indica "repeating section" (el más externo)
-    let section = null;
-    anc.forEach(n => {
-      const id = `${n.tagName} ${typeof n.className === 'string' ? n.className : ''} ${n.getAttribute('data-e2e') || ''} ${n.id || ''}`;
-      if (/repeat/i.test(id)) section = n;
-    });
-    if (section) return section;
-    // 2) Si no, el primer contenedor que incluye un botón "Add new row" que no es del control
-    return anc.find(n => [...n.querySelectorAll('button')].some(b => !this.contains(b) && this.isAddRowButton(b))) || null;
-  }
-
-  hideSectionButtonsNow() {
-    const off = this.hideSectionButtons === false || String(this.hideSectionButtons) === 'false';
-    const section = this.findSection();
-    if (!section) return null;
-    section.querySelectorAll('button, [role="button"], a.btn, .btn').forEach(b => {
-      if (b === this || this.contains(b) || b.contains(this)) return;
-      if (off) {
-        if (b.dataset.pkHidden) {
-          b.style.removeProperty('display');
-          delete b.dataset.pkHidden;
-        }
-      } else if (b.style.display !== 'none') {
-        b.style.setProperty('display', 'none', 'important');
-        b.dataset.pkHidden = '1';
-      }
-    });
-    return section;
-  }
-
-  watchSection() {
-    const section = this.hideSectionButtonsNow();
-    if (!section) {
-      // Nintex puede montar la sección después del control: se reintenta unas veces
-      this.sectionTries = (this.sectionTries || 0) + 1;
-      if (this.sectionTries < 20) setTimeout(() => this.watchSection(), 500);
-      return;
-    }
-    if (this.sectionObserver) this.sectionObserver.disconnect();
-    this.sectionObserver = new MutationObserver(() => this.hideSectionButtonsNow());
-    this.sectionObserver.observe(section, { childList: true, subtree: true });
   }
 
   // Si cambia la etapa/campos/reglas, se reenvía el valor para actualizar la marca "_faltan"

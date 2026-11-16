@@ -52,11 +52,6 @@ const config = {
       title: 'Permitir eliminar filas',
       defaultValue: true
     },
-    hideSectionButtons: {
-      type: 'boolean',
-      title: 'Ocultar botones de la sección repetida (si el control está dentro de una para guardar en la columna)',
-      defaultValue: true
-    },
     value: {
       type: 'string',
       title: 'updatedJson',
