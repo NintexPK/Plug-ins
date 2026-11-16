@@ -11,7 +11,7 @@ import { i as css, s as LitElement, y as html } from './query-assigned-elements-
    Tabla sin filas = valor vacío ("").
    ===================================================================== */
 
-const TAG = 'nac-milestones-v1';
+const TAG = 'pk-milestones-table';
 
 // Columnas fijas. "key" es el nombre en el JSON; "label" es la cabecera.
 const FIELDS = [

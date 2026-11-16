@@ -8,7 +8,7 @@ const config = {
     required: true,
     description: true
   },
-  version: '1.0',
+  version: '1.1',
   properties: {
     collection: {
       type: 'string',
