@@ -274,6 +274,11 @@ class NacMilestones extends LitElement {
       const t = this.lower(p);
       if (t === '*') return !!v;
       if (t.endsWith('*')) return v.startsWith(t.slice(0, -1));
+      // 'Yes' vale también para Sí, Si, true, 1 (y 'No' para false, 0)
+      const yes = ['yes', 'sí', 'si', 'true', '1', 'y'];
+      const no = ['no', 'false', '0', 'n'];
+      if (yes.includes(t)) return yes.includes(v);
+      if (no.includes(t)) return no.includes(v);
       return v === t;
     });
   }
@@ -371,14 +376,18 @@ class NacMilestones extends LitElement {
     try {
       const r = this.parseJson(t);
       if (r && typeof r === 'object' && !Array.isArray(r)) {
+        // '*' = regla para todas las columnas; después se aplican las de cada columna
+        const all = Object.keys(r).find(k => ['*', 'todos', 'todas', 'all'].includes(this.lower(k)));
+        if (all !== undefined) FIELDS.forEach(f => (map[f.key] = r[all]));
         Object.keys(r).forEach(k => {
+          if (k === all) return;
           const f = this.fieldOf(k);
           if (f) map[f.key] = r[k];
           else console.warn(`Milestones: la columna "${k}" de "Reglas de obligatorio" no existe.`);
         });
       }
     } catch (err) {
-      console.warn("Milestones: 'Reglas de obligatorio' no es un JSON válido; se usan las reglas por defecto.", t.slice(0, 80));
+      console.warn("Milestones: 'Reglas de obligatorio' no es un JSON válido; se usan las reglas por defecto.", `(${t.length} caracteres) …${t.slice(-60)}`);
     }
     return map;
   }
@@ -475,10 +484,11 @@ class NacMilestones extends LitElement {
     try {
       rules = this.parseJson(t);
     } catch (e) {
-      console.warn("Milestones: 'Reglas de tabla' no es un JSON válido:", t.slice(0, 80));
+      console.warn("Milestones: 'Reglas de tabla' no es un JSON válido:", `(${t.length} caracteres) …${t.slice(-60)}`);
       return [];
     }
-    if (!Array.isArray(rules)) rules = rules && typeof rules === 'object' ? [rules] : [];
+    // Sin corchetes (Nintex los toma como variables): {'r1':{...},'r2':{...}} equivale a una lista
+    if (!Array.isArray(rules)) rules = rules && typeof rules === 'object' ? (rules.filas ? [rules] : Object.values(rules)) : [];
     const rows = this.data.filter(r => !(this.editMode && r === this.selected));
     const describe = c => Object.keys(c || {}).map(k => {
       const f = this.fieldOf(k);
@@ -510,7 +520,7 @@ class NacMilestones extends LitElement {
     try {
       rules = this.parseJson(t);
     } catch (e) {
-      console.warn("Milestones: 'Read only por etapa' no es un JSON válido:", t.slice(0, 80));
+      console.warn("Milestones: 'Read only por etapa' no es un JSON válido:", `(${t.length} caracteres) …${t.slice(-60)}`);
       return res;
     }
     if (!rules || typeof rules !== 'object' || Array.isArray(rules)) return res;
@@ -583,7 +593,17 @@ class NacMilestones extends LitElement {
 
   updated(changed) {
     const ruleProps = ['stage', 'controlField', 'controlField2', 'requiredRules', 'tableRules', 'minRows', 'stageRules', 'lockedStatuses'];
-    if (ruleProps.some(p => changed.has(p))) this.syncFlag();
+    if (ruleProps.some(p => changed.has(p))) {
+      // Diagnóstico: en la consola del navegador (F12) se ve qué recibe el control
+      console.info('Milestones · valores recibidos:', {
+        etapa: this.stage,
+        campo: this.controlField,
+        campo2: this.controlField2,
+        reglasTabla: this.decodeText(this.tableRules) || '(vacío)',
+        avisos: this.tableIssues()
+      });
+      this.syncFlag();
+    }
     if (this.userEdited) return; // lo editado por el usuario no se sobrescribe
 
     // Valor guardado (lo que Nintex restaura al abrir el formulario)
