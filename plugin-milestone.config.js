@@ -16,7 +16,15 @@ const config = {
     },
     controlField: {
       type: 'string',
-      title: 'Campo de control (enlazar a cualquier campo; se usa en las reglas con "campo")'
+      title: 'Campo de control 1 (enlazar a cualquier campo; en las reglas se llama "campo")'
+    },
+    controlField2: {
+      type: 'string',
+      title: 'Campo de control 2 (enlazar a cualquier campo; en las reglas se llama "campo2")'
+    },
+    tableRules: {
+      type: 'string',
+      title: "Reglas de tabla (JSON). Ej: [{'cuando':{'campo':['Yes']},'filas':{'Type':['Health']}}]"
     },
     requiredRules: {
       type: 'string',

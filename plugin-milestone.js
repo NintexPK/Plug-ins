@@ -16,13 +16,14 @@ const TAG = 'pk-milestones-table';
 // Columnas fijas. "key" es el nombre en el JSON; "label" es la cabecera; "options" los valores del desplegable.
 const FIELDS = [
   { key: 'Name', label: 'Milestone name', kind: 'text' },
+  { key: 'Description', label: 'Milestone description', kind: 'text' },
   { key: 'Type', label: 'Milestone type', kind: 'select', options: ['Health', 'Implementation', 'Money Step'] },
   { key: 'Status', label: 'Milestone status', kind: 'select', options: ['Not started', 'Started', 'Completed', 'Cancelled'] },
   { key: 'CompletionDate', label: 'Milestone completion date', kind: 'date' }
 ];
 
 // Obligatoriedad por defecto (igual que el formulario actual). "Reglas de obligatorio" la cambia.
-const DEFAULT_REQUIRED = { Name: 'siempre', Type: 'siempre', Status: 'siempre', CompletionDate: 'siempre' };
+const DEFAULT_REQUIRED = { Name: 'siempre', Description: 'nunca', Type: 'siempre', Status: 'siempre', CompletionDate: 'siempre' };
 
 // Textos visibles (para traducirlos, cambiar solo aquí)
 const MSG = {
@@ -32,7 +33,9 @@ const MSG = {
   chooseOption: (l, o) => `${l}: choose one of the options (${o.join(', ')}).`,
   badDate: l => `${l}: enter a valid date.`,
   duplicated: n => `There is already a milestone named "${n}".`,
-  pending: 'Some milestones are missing required information:',
+  pending: 'Please review the milestones:',
+  mustExist: f => `A milestone with ${f} is required.`,
+  mustBe: (f, c) => `Every milestone with ${f} must have ${c}.`,
   missingIn: (n, ls) => `${n || '(no name)'}: ${ls.join(', ')}`,
   minRows: n => `At least ${n} milestone${n > 1 ? 's are' : ' is'} required.`,
   empty: 'No milestones yet. Click "Add" to create one.',
@@ -106,7 +109,8 @@ const baseStyle = css`
   th { font-weight: 700; height: 3.5rem; border-top: none; border-bottom: 2px solid var(--_header-border); cursor: pointer; user-select: none; }
   th .req { color: var(--_danger); margin-left: 2px; }
   th .arrow { margin-left: 4px; font-size: 0.75rem; opacity: 0.7; }
-  th.col-Name { width: 34%; }
+  th.col-Name { width: 22%; }
+  th.col-Description { width: 28%; }
   thead tr { background: var(--_header-bg); }
   tr { height: 3.25rem; }
   tbody tr:hover { background: var(--_hover-bg); }
@@ -152,6 +156,8 @@ class NacMilestones extends LitElement {
       value: { type: String },
       stage: { type: String },
       controlField: {},
+      controlField2: {},
+      tableRules: { type: String },
       requiredRules: { type: String },
       minRows: { type: String },
       stageRules: { type: String },
@@ -172,6 +178,9 @@ class NacMilestones extends LitElement {
     this.value = '';
     this.stage = '';
     this.controlField = '';
+    this.controlField2 = '';
+    this.tableRules = '';
+    this.ready = false;
     this.requiredRules = '';
     this.minRows = '';
     this.stageRules = '';
@@ -388,6 +397,7 @@ class NacMilestones extends LitElement {
       // Todas las condiciones indicadas se tienen que cumplir (Y)
       if (rule.etapa !== undefined && !this.matches(this.stage, rule.etapa)) return false;
       if (rule.campo !== undefined && !this.matches(this.plain(this.controlField), rule.campo)) return false;
+      if (rule.campo2 !== undefined && !this.matches(this.plain(this.controlField2), rule.campo2)) return false;
       if (rule.si !== undefined && !this.rowCondition(rule.si, row)) return false;
       if (rule.excepto !== undefined && this.rowCondition(rule.excepto, row)) return false;
       return true;
@@ -440,6 +450,41 @@ class NacMilestones extends LitElement {
     const min = this.minRowsNow();
     const count = this.data.filter(r => !(this.isNew && r === this.selected)).length;
     if (min > count) issues.push(MSG.minRows(min));
+    return issues.concat(this.tableRuleIssues());
+  }
+
+  /* Reglas de tabla (JSON, lista). Cada regla:
+       cuando : {'etapa':[...], 'campo':[...], 'campo2':[...]}  (todas se tienen que cumplir; opcional)
+       filas  : {'Type':['Health']}         -> tiene que existir al menos un milestone así
+       con    : {'Status':['Completed']}    -> (opcional) y todos esos milestones deben cumplir esto
+       mensaje: texto propio (opcional)                                                  */
+  tableRuleIssues() {
+    const t = this.decodeText(this.tableRules);
+    if (!t) return [];
+    let rules;
+    try {
+      rules = this.parseJson(t);
+    } catch (e) {
+      console.warn("Milestones: 'Reglas de tabla' no es un JSON válido:", t.slice(0, 80));
+      return [];
+    }
+    if (!Array.isArray(rules)) rules = rules && typeof rules === 'object' ? [rules] : [];
+    const rows = this.data.filter(r => !(this.editMode && r === this.selected));
+    const describe = c => Object.keys(c || {}).map(k => {
+      const f = this.fieldOf(k);
+      const v = Array.isArray(c[k]) ? c[k].join(' / ') : c[k];
+      return `${f ? f.label : k} = ${v}`;
+    }).join(' and ');
+    const issues = [];
+    rules.forEach(r => {
+      if (!r || typeof r !== 'object' || !r.filas) return;
+      const when = r.cuando || {};
+      if (!this.ruleApplies(when, {})) return;
+      const matching = rows.filter(row => this.rowCondition(r.filas, row));
+      let ok = matching.length > 0;
+      if (ok && r.con) ok = matching.every(row => this.rowCondition(r.con, row));
+      if (!ok) issues.push(r.mensaje || (matching.length && r.con ? MSG.mustBe(describe(r.filas), describe(r.con)) : MSG.mustExist(describe(r.filas))));
+    });
     return issues;
   }
 
@@ -527,7 +572,7 @@ class NacMilestones extends LitElement {
   /* --------------------------- ciclo de vida --------------------------- */
 
   updated(changed) {
-    const ruleProps = ['stage', 'controlField', 'requiredRules', 'minRows', 'stageRules', 'lockedStatuses'];
+    const ruleProps = ['stage', 'controlField', 'controlField2', 'requiredRules', 'tableRules', 'minRows', 'stageRules', 'lockedStatuses'];
     if (ruleProps.some(p => changed.has(p))) this.syncFlag();
     if (this.userEdited) return; // lo editado por el usuario no se sobrescribe
 
@@ -548,20 +593,32 @@ class NacMilestones extends LitElement {
     }
   }
 
-  // Si cambia la etapa/campo/reglas y ya hay datos, se reenvía el valor para actualizar "_faltan"
+  firstUpdated() {
+    // Margen para que Nintex entregue el valor guardado antes de enviar nada
+    setTimeout(() => {
+      this.ready = true;
+      this.syncFlag();
+    }, 1500);
+  }
+
+  // Si cambia la etapa/campos/reglas, se reenvía el valor para actualizar la marca "_faltan"
   syncFlag() {
-    if (!this.userEdited && !this.lastEmitted) return;
+    if (!this.ready && !this.userEdited && !this.lastEmitted) return;
+    if (this.isReadOnly() && !this.userEdited) return; // en solo lectura no se modifica nada
     const sent = String(this.lastEmitted || '').includes('"_faltan"');
-    const now = this.data.length > 0 && this.tableIssues().length > 0;
+    const now = this.tableIssues().length > 0;
     if (sent !== now) this.emit();
   }
 
   emit() {
     let value = '';
     const rows = this.data.filter(r => !(this.isNew && r === this.selected)).map(r => ({ ...r }));
+    const ko = this.tableIssues().length > 0;
     if (rows.length) {
-      if (this.tableIssues().length) rows[0]._faltan = true;
+      if (ko) rows[0]._faltan = true;
       value = JSON.stringify(rows);
+    } else if (ko) {
+      value = JSON.stringify([{ _faltan: true }]); // tabla vacía pero falta algo (p. ej. el milestone Health)
     }
     this.lastEmitted = value;
     this.dispatchEvent(new CustomEvent('ntx-value-change', {
