@@ -613,22 +613,38 @@ class NacMilestones extends LitElement {
   /* Si el control está dentro de una sección repetida (solo para guardar en la columna),
      se ocultan los botones de esa sección: "añadir fila", "eliminar fila", etc.
      Los botones del propio control no se tocan. Se desactiva con "Ocultar botones de la sección" = No */
-  findSection() {
-    let section = null;
+  // Sube por los contenedores del control (atravesando shadow DOM)
+  ancestors() {
+    const list = [];
     let n = this.parentNode;
-    for (let i = 0; n && i < 25; i++) {
+    for (let i = 0; n && i < 60; i++) {
       if (typeof ShadowRoot !== 'undefined' && n instanceof ShadowRoot) {
         n = n.host;
         continue;
       }
-      if (n.nodeType === 1) {
-        const id = `${n.tagName} ${typeof n.className === 'string' ? n.className : ''} ${n.getAttribute('data-e2e') || ''}`;
-        if (/repeat/i.test(id)) section = n; // se queda con el contenedor más externo de la sección
-        if (n.tagName === 'FORM' || n === document.body) break;
-      }
+      if (n.nodeType !== 1 || n === document.body || n === document.documentElement) break;
+      list.push(n);
       n = n.parentNode;
     }
-    return section;
+    return list;
+  }
+
+  isAddRowButton(b) {
+    const t = `${b.textContent || ''} ${b.getAttribute('aria-label') || ''} ${b.getAttribute('title') || ''}`.trim();
+    return /^(\+\s*)?(add|añadir|agregar|nueva|new)\b/i.test(t) || /add (new )?row|añadir fila/i.test(t);
+  }
+
+  findSection() {
+    const anc = this.ancestors();
+    // 1) Contenedor cuyo nombre interno indica "repeating section" (el más externo)
+    let section = null;
+    anc.forEach(n => {
+      const id = `${n.tagName} ${typeof n.className === 'string' ? n.className : ''} ${n.getAttribute('data-e2e') || ''} ${n.id || ''}`;
+      if (/repeat/i.test(id)) section = n;
+    });
+    if (section) return section;
+    // 2) Si no, el primer contenedor que incluye un botón "Add new row" que no es del control
+    return anc.find(n => [...n.querySelectorAll('button')].some(b => !this.contains(b) && this.isAddRowButton(b))) || null;
   }
 
   hideSectionButtonsNow() {
@@ -655,7 +671,7 @@ class NacMilestones extends LitElement {
     if (!section) {
       // Nintex puede montar la sección después del control: se reintenta unas veces
       this.sectionTries = (this.sectionTries || 0) + 1;
-      if (this.sectionTries < 10) setTimeout(() => this.watchSection(), 500);
+      if (this.sectionTries < 20) setTimeout(() => this.watchSection(), 500);
       return;
     }
     if (this.sectionObserver) this.sectionObserver.disconnect();
