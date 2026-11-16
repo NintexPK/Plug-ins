@@ -13,11 +13,11 @@ import { i as css, s as LitElement, y as html } from './query-assigned-elements-
 
 const TAG = 'pk-milestones-table';
 
-// Columnas fijas. "key" es el nombre en el JSON; "label" es la cabecera.
+// Columnas fijas. "key" es el nombre en el JSON; "label" es la cabecera; "options" los valores del desplegable.
 const FIELDS = [
   { key: 'Name', label: 'Milestone name', kind: 'text' },
-  { key: 'Type', label: 'Milestone type', kind: 'select', optionsProp: 'typeOptions' },
-  { key: 'Status', label: 'Milestone status', kind: 'select', optionsProp: 'statusOptions' },
+  { key: 'Type', label: 'Milestone type', kind: 'select', options: ['Health', 'Implementation', 'Money Step'] },
+  { key: 'Status', label: 'Milestone status', kind: 'select', options: ['Not started', 'Started', 'Completed', 'Cancelled'] },
   { key: 'CompletionDate', label: 'Milestone completion date', kind: 'date' }
 ];
 
@@ -149,10 +149,7 @@ class NacMilestones extends LitElement {
 
   static get properties() {
     return {
-      collection: { type: String },
       value: { type: String },
-      typeOptions: { type: String },
-      statusOptions: { type: String },
       stage: { type: String },
       controlField: {},
       requiredRules: { type: String },
@@ -172,10 +169,7 @@ class NacMilestones extends LitElement {
 
   constructor() {
     super();
-    this.collection = '';
     this.value = '';
-    this.typeOptions = '';
-    this.statusOptions = '';
     this.stage = '';
     this.controlField = '';
     this.requiredRules = '';
@@ -346,9 +340,7 @@ class NacMilestones extends LitElement {
   }
 
   optionsFor(field) {
-    if (field.kind !== 'select') return null;
-    const list = this.toList(this[field.optionsProp]);
-    return list.length ? list : null;
+    return field.kind === 'select' && field.options && field.options.length ? field.options : null;
   }
 
   /* --------------------------- obligatoriedad --------------------------- */
@@ -539,7 +531,7 @@ class NacMilestones extends LitElement {
     if (ruleProps.some(p => changed.has(p))) this.syncFlag();
     if (this.userEdited) return; // lo editado por el usuario no se sobrescribe
 
-    // 1) Valor guardado (lo que Nintex restaura al abrir el formulario) tiene prioridad
+    // Valor guardado (lo que Nintex restaura al abrir el formulario)
     const saved = this.usableJson(this.value);
     if (changed.has('value') && saved && saved !== this.lastEmitted) {
       try {
@@ -552,20 +544,6 @@ class NacMilestones extends LitElement {
         return;
       } catch (e) {
         console.error('Milestones: error al leer el valor guardado', e);
-      }
-    }
-    // 2) Plantilla (JSONData) solo si no hay nada guardado
-    if (changed.has('collection') && !saved) {
-      const tpl = this.usableJson(this.decodeText(this.collection));
-      if (!tpl) {
-        if (this.collection) console.warn('Milestones: JSONData no es un JSON válido:', String(this.collection).slice(0, 60));
-        return;
-      }
-      try {
-        this.data = this.loadRows(tpl);
-        this.refresh();
-      } catch (e) {
-        console.error('Milestones: error al leer JSONData', e);
       }
     }
   }

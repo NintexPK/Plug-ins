@@ -10,18 +10,6 @@ const config = {
   },
   version: '1.1',
   properties: {
-    collection: {
-      type: 'string',
-      title: 'JSONData (milestones iniciales, opcional)'
-    },
-    typeOptions: {
-      type: 'string',
-      title: 'Opciones de Milestone type (separadas por ;)'
-    },
-    statusOptions: {
-      type: 'string',
-      title: 'Opciones de Milestone status (separadas por ;)'
-    },
     stage: {
       type: 'string',
       title: 'Etapa actual (enlazar al campo de etapa)'
