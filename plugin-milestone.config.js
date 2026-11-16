@@ -5,22 +5,22 @@ const config = {
   fallbackDisableSubmit: false,
   standardProperties: {
     readOnly: true,
-    required: true,
+    required: false,
     description: true
   },
   version: '1.1',
   properties: {
     stage: {
       type: 'string',
-      title: 'Etapa actual (enlazar al campo de etapa)'
+      title: 'Etapa actual (enlazar)'
     },
     controlField: {
       type: 'string',
-      title: 'Campo de control 1 (enlazar a cualquier campo; en las reglas se llama "campo")'
+      title: 'Campo de control 1 (Pass to L3)'
     },
     controlField2: {
       type: 'string',
-      title: 'Campo de control 2 (enlazar a cualquier campo; en las reglas se llama "campo2")'
+      title: 'Campo de control 2 (Pass to L4)'
     },
     tableRules: {
       type: 'string',
@@ -30,31 +30,13 @@ const config = {
       type: 'string',
       title: "Reglas de obligatorio (JSON). Ej: {'CompletionDate':{'si':{'Status':['Completed']}},'Type':{'etapa':['L2*','L3*']}}"
     },
-    minRows: {
-      type: 'string',
-      title: "Mínimo de milestones (número o JSON por etapa). Ej: 1  o  {'L2*':1,'L3*':2}"
-    },
     stageRules: {
       type: 'string',
       title: "Read only por etapa (JSON). Ej: {'L3*':['Type'],'Submitted*':'Todo'}"
     },
-    lockedStatuses: {
-      type: 'string',
-      title: 'Estados que bloquean la fila (separados por ;). Ej: Completed; Cancelled'
-    },
-    dateFormat: {
-      type: 'string',
-      title: 'Formato de fecha mostrado (dd/mm/yyyy, mm/dd/yyyy o yyyy-mm-dd)',
-      defaultValue: 'dd/mm/yyyy'
-    },
     allowDelete: {
       type: 'boolean',
       title: 'Permitir eliminar filas',
-      defaultValue: true
-    },
-    showWarnings: {
-      type: 'boolean',
-      title: 'Mostrar avisos en la tabla (No = solo marcas _ko_ para las reglas del formulario)',
       defaultValue: true
     },
     value: {

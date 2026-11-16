@@ -33,12 +33,10 @@ const MSG = {
   chooseOption: (l, o) => `${l}: choose one of the options (${o.join(', ')}).`,
   badDate: l => `${l}: enter a valid date.`,
   duplicated: n => `There is already a milestone named "${n}".`,
-  pending: 'Please review the milestones:',
   mustExist: f => `A milestone with ${f} is required.`,
   mustBe: (f, c) => `Every milestone with ${f} must have ${c}.`,
   mustExistWith: (f, c) => `A milestone with ${f} and ${c} is required.`,
   missingIn: (n, ls) => `${n || '(no name)'}: ${ls.join(', ')}`,
-  minRows: n => `At least ${n} milestone${n > 1 ? 's are' : ' is'} required.`,
   empty: 'No milestones yet. Click "Add" to create one.',
   search: 'Search...'
 };
@@ -160,12 +158,8 @@ class NacMilestones extends LitElement {
       controlField2: {},
       tableRules: { type: String },
       requiredRules: { type: String },
-      minRows: { type: String },
       stageRules: { type: String },
-      lockedStatuses: { type: String },
-      dateFormat: { type: String },
       allowDelete: { type: Boolean },
-      showWarnings: { type: Boolean },
       readOnly: { type: Boolean },
       readonly: { type: String }
     };
@@ -184,12 +178,9 @@ class NacMilestones extends LitElement {
     this.tableRules = '';
     this.ready = false;
     this.requiredRules = '';
-    this.minRows = '';
     this.stageRules = '';
-    this.lockedStatuses = '';
-    this.dateFormat = 'dd/mm/yyyy';
+    this.dateFormat = 'dd/mm/yyyy'; // formato fijo de la fecha mostrada
     this.allowDelete = true;
-    this.showWarnings = true;
     this.readOnly = false;
     this.readonly = false;
 
@@ -438,25 +429,6 @@ class NacMilestones extends LitElement {
     return this.data.some(r => this.ruleApplies(rule, r));
   }
 
-  minRowsNow() {
-    const t = this.decodeText(this.minRows);
-    if (!t) return 0;
-    if (/^\d+$/.test(t)) return parseInt(t, 10);
-    try {
-      const r = this.parseJson(t);
-      if (r && typeof r === 'object') {
-        const stage = this.lower(this.stage);
-        const keys = Object.keys(r);
-        let k = keys.find(x => this.lower(x) === stage);
-        if (k === undefined) k = keys.find(x => this.matches(this.stage, [x]));
-        return k === undefined ? 0 : parseInt(r[k], 10) || 0;
-      }
-    } catch (e) {
-      console.warn("Milestones: 'Mínimo de milestones' no es válido:", t.slice(0, 80));
-    }
-    return 0;
-  }
-
   missingFields(row) {
     return FIELDS.filter(f => this.isRequired(f, row) && !String(row[f.key] ?? '').trim());
   }
@@ -469,9 +441,6 @@ class NacMilestones extends LitElement {
       const miss = this.missingFields(r);
       if (miss.length) issues.push(MSG.missingIn(r.Name, miss.map(f => f.label)));
     });
-    const min = this.minRowsNow();
-    const count = this.data.filter(r => !(this.isNew && r === this.selected)).length;
-    if (min > count) issues.push(MSG.minRows(min));
     return [...new Set(issues.concat(this.tableRuleIssues()))]; // sin avisos repetidos
   }
 
@@ -551,9 +520,7 @@ class NacMilestones extends LitElement {
 
   isRowLocked(row) {
     if (!row) return true;
-    if (this.stageLocked().all) return true;
-    const ls = this.toList(this.lockedStatuses);
-    return ls.length > 0 && this.matches(row.Status, ls);
+    return this.stageLocked().all;
   }
 
   isCellLocked(row, field) {
@@ -606,7 +573,7 @@ class NacMilestones extends LitElement {
   /* --------------------------- ciclo de vida --------------------------- */
 
   updated(changed) {
-    const ruleProps = ['stage', 'controlField', 'controlField2', 'requiredRules', 'tableRules', 'minRows', 'stageRules', 'lockedStatuses'];
+    const ruleProps = ['stage', 'controlField', 'controlField2', 'requiredRules', 'tableRules', 'stageRules'];
     if (ruleProps.some(p => changed.has(p))) {
       // Diagnóstico: en la consola del navegador (F12) se ve qué recibe el control
       console.info('Milestones · valores recibidos:', {
@@ -848,7 +815,6 @@ class NacMilestones extends LitElement {
 
   render() {
     const ro = this.isReadOnly();
-    const issues = this.tableIssues();
     return html`
       <div class="nac-root" @keydown="${e => this.onKey(e)}">
         <div class="top-panel">
@@ -857,10 +823,6 @@ class NacMilestones extends LitElement {
         ${this.errors.length ? html`<div class="msg ko" role="alert">
               <strong>${MSG.cantSave}</strong>
               <ul>${this.errors.map(m => html`<li>${m}</li>`)}</ul>
-            </div>` : null}
-        ${issues.length && this.showWarnings !== false && String(this.showWarnings) !== 'false' ? html`<div class="msg ko" role="status">
-              <strong>${MSG.pending}</strong>
-              <ul>${issues.map(m => html`<li>${m}</li>`)}</ul>
             </div>` : null}
         ${this.renderTable(ro)}
       </div>
