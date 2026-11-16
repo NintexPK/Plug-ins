@@ -211,6 +211,8 @@ class NacMilestones extends LitElement {
     return String(v ?? '').trim()
       .replace(/&#0*39;|&apos;/gi, "'")
       .replace(/&quot;|&#0*34;/gi, '"')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
       .replace(/&amp;/gi, '&');
   }
 
@@ -227,7 +229,15 @@ class NacMilestones extends LitElement {
 
   usableJson(text) {
     const t = typeof text === 'string' ? text.trim() : '';
-    return /^[\[{]/.test(t) ? t : '';
+    if (/^[\[{]/.test(t)) return t;
+    // La columna de SharePoint puede llegar envuelta en el XML de la sección repetida:
+    // <RepeaterData>...<Item><_id type="System.String">[{...}]</_id></Item>...</RepeaterData>
+    if (t.startsWith('<')) {
+      const m = t.match(/<Item>\s*<[^>]+>([\s\S]*?)<\/[^>]+>\s*<\/Item>/i);
+      const inner = m ? this.decodeText(m[1]) : '';
+      if (/^[\[{]/.test(inner)) return inner;
+    }
+    return '';
   }
 
   // Valor de un control de Nintex: puede llegar como texto, lista u objeto
@@ -604,6 +614,8 @@ class NacMilestones extends LitElement {
   // Si cambia la etapa/campos/reglas, se reenvía el valor para actualizar la marca "_faltan"
   syncFlag() {
     if (!this.ready && !this.userEdited && !this.lastEmitted) return;
+    // Hay un valor guardado que todavía no se ha cargado: no se envía nada para no pisarlo
+    if (!this.userEdited && !this.data.length && String(this.value || '').trim() && this.value !== this.lastEmitted) return;
     if (this.isReadOnly() && !this.userEdited) return; // en solo lectura no se modifica nada
     const sent = String(this.lastEmitted || '').includes('"_faltan"');
     const now = this.tableIssues().length > 0;
