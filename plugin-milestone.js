@@ -179,7 +179,7 @@ class NacMilestones extends LitElement {
     this.ready = false;
     this.requiredRules = '';
     this.stageRules = '';
-    this.dateFormat = 'dd/mm/yyyy'; // formato fijo de la fecha mostrada
+    this.dateFormat = 'dd/mm/yyyy';
     this.allowDelete = true;
     this.readOnly = false;
     this.readonly = false;
