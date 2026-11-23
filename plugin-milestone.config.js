@@ -1,6 +1,6 @@
 const config = {
-  controlName: 'Milestones table',
-  description: 'Tabla editable de milestones (nombre, descripción, tipo, estado y fecha) con reglas de obligatoriedad y solo lectura por etapa',
+  controlName: 'Milestones table v2',
+  description: 'Tabla editable de milestones (nombre, descripción, tipo, estado, fecha de inicio y fecha de fin) con reglas de obligatoriedad y solo lectura por etapa',
   groupName: 'Presales Controls',
   fallbackDisableSubmit: false,
   standardProperties: {
@@ -8,19 +8,19 @@ const config = {
     required: false,
     description: true
   },
-  version: '1.1',
+  version: '2.0',
   properties: {
     stage: {
       type: 'string',
-      title: 'Etapa actual (enlazar)'
+      title: 'Etapa actual (enlazar al campo de etapa)'
     },
     controlField: {
       type: 'string',
-      title: 'Campo de control 1 (Pass to L3)'
+      title: 'Campo de control 1 (enlazar a cualquier campo; en las reglas se llama "campo")'
     },
     controlField2: {
       type: 'string',
-      title: 'Campo de control 2 (Pass to L4)'
+      title: 'Campo de control 2 (enlazar a cualquier campo; en las reglas se llama "campo2")'
     },
     tableRules: {
       type: 'string',
@@ -28,7 +28,7 @@ const config = {
     },
     requiredRules: {
       type: 'string',
-      title: "Reglas de obligatorio (JSON). Ej: {'CompletionDate':{'si':{'Status':['Completed']}},'Type':{'etapa':['L2*','L3*']}}"
+      title: "Reglas de obligatorio (JSON). Ej: {'StartingDate':{'si':{'Status':['Started']}},'CompletionDate':{'si':{'Status':['Completed']}},'Type':{'etapa':['L2*','L3*']}}"
     },
     stageRules: {
       type: 'string',
