@@ -152,7 +152,7 @@ const ICONS = {
 };
 const icon = d => html`<svg height="18" width="18" viewBox="0 0 24 24" fill="currentColor"><path d="${d}"></path></svg>`;
 
-class NacMilestonesV2 extends LitElement {
+class NacMilestones extends LitElement {
   static get styles() {
     return [baseStyle];
   }
@@ -173,7 +173,7 @@ class NacMilestonesV2 extends LitElement {
   }
 
   static getMetaConfig() {
-    return import('./plugin-milestone.config-v2.js').then(x => x.config);
+    return import('./plugin-milestone.config.js').then(x => x.config);
   }
 
   constructor() {
@@ -802,10 +802,17 @@ class NacMilestonesV2 extends LitElement {
     }
   }
 
-  setDraft(field, value) {
+  /* send=false: solo se guarda lo escrito (mientras se teclea), sin avisar a Nintex.
+     Avisar a Nintex en cada tecla hace que el formulario se refresque y el campo pierda el foco.
+     El valor se envía al salir del campo (evento change), al cambiar un desplegable o al pulsar Save. */
+  setDraft(field, value, send = true) {
     this.draft = { ...this.draft, [field.key]: value };
-    if (this.invalid.includes(field.key)) this.invalid = this.invalid.filter(k => k !== field.key);
     this.userEdited = true;
+    if (this.invalid.includes(field.key)) {
+      this.invalid = this.invalid.filter(k => k !== field.key);
+      this.requestUpdate();
+    }
+    if (!send) return;
     this.requestUpdate();
     this.emit(); // se envía ya, aunque no se pulse Save en la tabla
   }
@@ -966,19 +973,20 @@ class NacMilestonesV2 extends LitElement {
         <input type="date" class="cell-input input-styled" aria-label="${f.label}" ?required="${req}"
           .value="${this.validISO(v) ? v : ''}"
           @click="${e => e.stopPropagation()}"
-          @change="${e => this.setDraft(f, e.target.value)}"
-          @input="${e => this.setDraft(f, e.target.value)}" />
+          @input="${e => this.setDraft(f, e.target.value, false)}"
+          @change="${e => this.setDraft(f, e.target.value)}" />
       </td>`;
     }
     return html`<td class="${tdCls}">
       <input type="text" class="cell-input input-styled" aria-label="${f.label}" ?required="${req}"
         .value="${v}"
         @click="${e => e.stopPropagation()}"
-        @input="${e => this.setDraft(f, e.target.value)}" />
+        @input="${e => this.setDraft(f, e.target.value, false)}"
+        @change="${e => this.setDraft(f, e.target.value)}" />
     </td>`;
   }
 }
 
-if (!customElements.get(TAG)) customElements.define(TAG, NacMilestonesV2);
+if (!customElements.get(TAG)) customElements.define(TAG, NacMilestones);
 
-export { NacMilestonesV2 };
+export { NacMilestones };

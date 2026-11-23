@@ -1,5 +1,5 @@
 const config = {
-  controlName: 'Milestones table v2',
+  controlName: 'Milestones table',
   description: 'Tabla editable de milestones (nombre, descripción, tipo, estado, fecha de inicio y fecha de fin) con reglas de obligatoriedad y solo lectura por etapa',
   groupName: 'Presales Controls',
   fallbackDisableSubmit: false,
