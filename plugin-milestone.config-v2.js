@@ -8,7 +8,7 @@ const config = {
     required: false,
     description: true
   },
-  version: '2.1',
+  version: '2.2',
   properties: {
     stage: {
       type: 'string',
