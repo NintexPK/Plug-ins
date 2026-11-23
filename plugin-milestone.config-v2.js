@@ -1,6 +1,6 @@
 const config = {
   controlName: 'Milestones table v2',
-  description: 'Tabla editable de milestones (nombre, descripción, tipo, estado, fecha de inicio y fecha de fin) con reglas de obligatoriedad y solo lectura por etapa',
+  description: 'Tabla editable de milestones (nombre, descripción, tipo, estado, fecha de inicio y fecha de fin) con descarga a Excel, reglas de obligatoriedad y solo lectura por etapa',
   groupName: 'Presales Controls',
   fallbackDisableSubmit: false,
   standardProperties: {
@@ -8,7 +8,7 @@ const config = {
     required: false,
     description: true
   },
-  version: '2.0',
+  version: '2.1',
   properties: {
     stage: {
       type: 'string',

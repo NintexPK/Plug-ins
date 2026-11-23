@@ -1,7 +1,7 @@
 import { i as css, s as LitElement, y as html } from './query-assigned-elements-8a604587.js';
 
 /* =====================================================================
-   Milestones table (v2.0)
+   Milestones table (v2.1)
    Una fila por milestone: Name (texto) | Description (texto) | Type (desplegable) |
    Status (desplegable) | StartingDate (fecha) | CompletionDate (fecha).
    Valor que se guarda (updatedJson):
@@ -15,12 +15,12 @@ const TAG = 'pk-milestones-table-v2';
 
 // Columnas fijas. "key" es el nombre en el JSON; "label" es la cabecera; "options" los valores del desplegable.
 const FIELDS = [
-  { key: 'Name', label: 'Milestone name', kind: 'text' },
-  { key: 'Description', label: 'Milestone description', kind: 'text' },
-  { key: 'Type', label: 'Milestone type', kind: 'select', options: ['Health', 'Implementation', 'Money Step'] },
-  { key: 'Status', label: 'Milestone status', kind: 'select', options: ['Not started', 'Started', 'Completed', 'Cancelled'] },
-  { key: 'StartingDate', label: 'Milestone starting date', kind: 'date' },
-  { key: 'CompletionDate', label: 'Milestone completion date', kind: 'date' }
+  { key: 'Name', label: 'Milestone name', kind: 'text', xlsWidth: 30 },
+  { key: 'Description', label: 'Milestone description', kind: 'text', xlsWidth: 50 },
+  { key: 'Type', label: 'Milestone type', kind: 'select', options: ['Health', 'Implementation', 'Money Step'], xlsWidth: 18 },
+  { key: 'Status', label: 'Milestone status', kind: 'select', options: ['Not started', 'Started', 'Completed', 'Cancelled'], xlsWidth: 18 },
+  { key: 'StartingDate', label: 'Milestone starting date', kind: 'date', xlsWidth: 22 },
+  { key: 'CompletionDate', label: 'Milestone completion date', kind: 'date', xlsWidth: 24 }
 ];
 
 // Obligatoriedad por defecto (igual que el formulario actual). "Reglas de obligatorio" la cambia.
@@ -39,7 +39,10 @@ const MSG = {
   mustExistWith: (f, c) => `A milestone with ${f} and ${c} is required.`,
   missingIn: (n, ls) => `${n || '(no name)'}: ${ls.join(', ')}`,
   empty: 'No milestones yet. Click "Add" to create one.',
-  search: 'Search...'
+  search: 'Search...',
+  download: 'Download',
+  fileName: 'Milestones',
+  sheetName: 'Milestones'
 };
 
 const baseStyle = css`
@@ -88,13 +91,14 @@ const baseStyle = css`
   .input-styled:focus { box-shadow: var(--_focus-ring); border-color: var(--_primary); }
 
   /* Barra de botones */
-  .toolbar { display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; height: 3.5rem; padding: 0 14px; width: 100%; max-width: 420px; background: var(--_toolbar-bg); border: 1px solid var(--_line); border-radius: var(--_radius); }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; height: 3.5rem; padding: 0 14px; width: 100%; max-width: 540px; background: var(--_toolbar-bg); border: 1px solid var(--_line); border-radius: var(--_radius); }
   .toolbar button { background: transparent; cursor: pointer; display: flex; align-items: center; gap: 2px; border: none; border-radius: var(--_radius-sm); padding: 8px; font-family: inherit; font-weight: 600; color: var(--nac-btn-color, var(--_muted)); }
   .toolbar button:hover:not(:disabled) { color: var(--_primary-dark); background: var(--_primary-soft); }
   .toolbar button:focus-visible { box-shadow: var(--_focus-ring); }
   .toolbar button:disabled { cursor: default; color: var(--_disabled-fg); }
   .toolbar button.delete { color: var(--_danger); }
   .toolbar button.delete:disabled { color: var(--_disabled-fg); }
+  .toolbar.ro { width: auto; justify-content: flex-end; }
 
   /* Mensajes */
   .msg { margin: 0 0 0.75rem; padding: 0.6rem 0.9rem; border-radius: var(--_radius-sm); font-size: 0.875rem; border: 1px solid; }
@@ -148,8 +152,138 @@ const ICONS = {
   discard: 'M13.5,7A6.5,6.5 0 0,1 20,13.5A6.5,6.5 0 0,1 13.5,20H10V18H13.5C16,18 18,16 18,13.5C18,11 16,9 13.5,9H7.83L10.91,12.09L9.5,13.5L4,8L9.5,2.5L10.92,3.91L7.83,7H13.5M6,18H8V20H6V18Z',
   save: 'M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z',
   del: 'M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z',
+  download: 'M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z',
   search: 'M9.5,4C13.09,4 16,6.91 16,10.5C16,12.12 15.41,13.6 14.43,14.73L20.08,20.38L19.37,21.09L13.72,15.44C12.59,16.41 11.11,17 9.5,17C5.91,17 3,14.09 3,10.5C3,6.91 5.91,4 9.5,4M9.5,5C6.46,5 4,7.46 4,10.5C4,13.54 6.46,16 9.5,16C12.54,16 15,13.54 15,10.5C15,7.46 12.54,5 9.5,5Z'
 };
+/* ------------------------- exportación a Excel -------------------------
+   Genera un .xlsx real (sin librerías externas): un ZIP sin compresión con
+   las partes mínimas de un libro de Excel. Las fechas se guardan como fecha
+   de Excel (se ven en el formato de fecha del equipo).                    */
+
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(bytes) {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+// ZIP "store" (sin compresión). files: [{ name, text }]
+function zipStore(files) {
+  const enc = new TextEncoder();
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  const u16 = (v, a) => a.push(v & 0xff, (v >>> 8) & 0xff);
+  const u32 = (v, a) => a.push(v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >>> 24) & 0xff);
+  files.forEach(f => {
+    const name = enc.encode(f.name);
+    const data = enc.encode(f.text);
+    const crc = crc32(data);
+    const head = [];
+    u32(0x04034b50, head); u16(20, head); u16(0x0800, head); u16(0, head);
+    u16(0, head); u16(0x21, head); // hora/fecha fijas (01/01/1980)
+    u32(crc, head); u32(data.length, head); u32(data.length, head);
+    u16(name.length, head); u16(0, head);
+    parts.push(new Uint8Array(head), name, data);
+    const cen = [];
+    u32(0x02014b50, cen); u16(20, cen); u16(20, cen); u16(0x0800, cen); u16(0, cen);
+    u16(0, cen); u16(0x21, cen);
+    u32(crc, cen); u32(data.length, cen); u32(data.length, cen);
+    u16(name.length, cen); u16(0, cen); u16(0, cen); u16(0, cen); u16(0, cen);
+    u32(0, cen); u32(offset, cen);
+    central.push(new Uint8Array(cen), name);
+    offset += head.length + name.length + data.length;
+  });
+  const cenSize = central.reduce((s, p) => s + p.length, 0);
+  const end = [];
+  u32(0x06054b50, end); u16(0, end); u16(0, end); u16(files.length, end); u16(files.length, end);
+  u32(cenSize, end); u32(offset, end); u16(0, end);
+  return new Blob([...parts, ...central, new Uint8Array(end)],
+    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+function xmlEsc(v) {
+  return String(v ?? '')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function colName(i) {
+  let s = '';
+  for (i += 1; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + ((i - 1) % 26)) + s;
+  return s;
+}
+
+// columns: [{ label, kind, width }]; rows: [[valor, ...]] (fechas en ISO aaaa-mm-dd)
+function buildXlsx(columns, rows, sheetName) {
+  const serial = iso => {
+    const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? (Date.UTC(+m[1], +m[2] - 1, +m[3]) - Date.UTC(1899, 11, 30)) / 86400000 : null;
+  };
+  const cell = (ref, v, kind, header) => {
+    if (header) return `<c r="${ref}" t="inlineStr" s="1"><is><t>${xmlEsc(v)}</t></is></c>`;
+    if (v === '' || v === null || v === undefined) return '';
+    if (kind === 'date') {
+      const n = serial(v);
+      if (n !== null) return `<c r="${ref}" s="2"><v>${n}</v></c>`;
+    }
+    return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+  };
+  const lines = [columns.map(c => c.label), ...rows].map((r, ri) =>
+    `<row r="${ri + 1}">${r.map((v, ci) => cell(colName(ci) + (ri + 1), v, columns[ci].kind, ri === 0)).join('')}</row>`);
+  const cols = columns.map((c, i) => `<col min="${i + 1}" max="${i + 1}" width="${c.width || 20}" customWidth="1"/>`).join('');
+  const sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>' +
+    `<cols>${cols}</cols><sheetData>${lines.join('')}</sheetData></worksheet>`;
+  const safeName = xmlEsc(String(sheetName || 'Sheet1').replace(/[\\\/?*\[\]:]/g, ' ').slice(0, 31));
+  return zipStore([
+    { name: '[Content_Types].xml', text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+      '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+      '</Types>' },
+    { name: '_rels/.rels', text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+      '</Relationships>' },
+    { name: 'xl/workbook.xml', text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      '<bookViews><workbookView activeTab="0"/></bookViews>' +
+      `<sheets><sheet name="${safeName}" sheetId="1" r:id="rId1"/></sheets></workbook>` },
+    { name: 'xl/_rels/workbook.xml.rels', text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+      '</Relationships>' },
+    { name: 'xl/worksheets/sheet1.xml', text: sheet },
+    { name: 'xl/styles.xml', text: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>' +
+      '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="FFD9E1F2"/><bgColor indexed="64"/></patternFill></fill></fills>' +
+      '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
+      '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+      '<cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+      '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>' +
+      '<xf numFmtId="14" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs>' +
+      '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+      '</styleSheet>' }
+  ]);
+}
+
 const icon = d => html`<svg height="18" width="18" viewBox="0 0 24 24" fill="currentColor"><path d="${d}"></path></svg>`;
 
 class NacMilestonesV2 extends LitElement {
@@ -775,6 +909,32 @@ class NacMilestonesV2 extends LitElement {
     this.emit();
   }
 
+  // Descarga la tabla en Excel (todas las filas, con el orden actual de la tabla)
+  onDownload() {
+    const rows = this.snapshot();
+    if (!rows.length) return;
+    const { field, dir } = this.sort;
+    if (field) {
+      rows.sort((a, b) => {
+        const x = this.lower(a[field]);
+        const y = this.lower(b[field]);
+        return x < y ? (dir === 'asc' ? -1 : 1) : x > y ? (dir === 'asc' ? 1 : -1) : 0;
+      });
+    }
+    const columns = FIELDS.map(f => ({ label: f.label, kind: f.kind, width: f.xlsWidth }));
+    const blob = buildXlsx(columns, rows.map(r => FIELDS.map(f => r[f.key] ?? '')), MSG.sheetName);
+    const d = new Date();
+    const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${MSG.fileName}_${stamp}.xlsx`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
+
   onRowClick(item) {
     if (this.isReadOnly()) return;
     if (this.editMode) {
@@ -850,7 +1010,7 @@ class NacMilestonesV2 extends LitElement {
     return html`
       <div class="nac-root" @keydown="${e => this.onKey(e)}">
         <div class="top-panel">
-          ${this.renderSearch()} ${ro ? null : this.renderToolbar()}
+          ${this.renderSearch()} ${this.renderToolbar(ro)}
         </div>
         ${this.errors.length ? html`<div class="msg ko" role="alert">
               <strong>${MSG.cantSave}</strong>
@@ -869,7 +1029,10 @@ class NacMilestonesV2 extends LitElement {
     </div>`;
   }
 
-  renderToolbar() {
+  renderToolbar(ro) {
+    const download = html`<button @click="${() => this.onDownload()}" ?disabled="${!this.data.length}"
+        title="Excel (.xlsx)">${icon(ICONS.download)} ${MSG.download}</button>`;
+    if (ro) return html`<div class="toolbar ro">${download}</div>`; // solo lectura: solo descargar
     const sel = this.selected;
     const lockedAll = this.stageLocked().all;
     return html`<div class="toolbar">
@@ -879,6 +1042,7 @@ class NacMilestonesV2 extends LitElement {
       <button @click="${() => this.onSave()}" ?disabled="${!this.editMode}">${icon(ICONS.save)} Save</button>
       ${this.canDelete() ? html`<button class="delete" @click="${() => this.onDelete()}"
           ?disabled="${!sel || this.editMode || this.isRowLocked(sel)}">${icon(ICONS.del)} Delete</button>` : null}
+      ${download}
     </div>`;
   }
 
