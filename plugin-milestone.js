@@ -11,7 +11,7 @@ import { i as css, s as LitElement, y as html } from './query-assigned-elements-
    Tabla sin filas = valor vacío ("").
    ===================================================================== */
 
-const TAG = 'pk-milestones-table-v2';
+const TAG = 'pk-milestones-table';
 
 // Columnas fijas. "key" es el nombre en el JSON; "label" es la cabecera; "options" los valores del desplegable.
 const FIELDS = [
