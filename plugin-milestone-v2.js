@@ -1,17 +1,17 @@
 import { i as css, s as LitElement, y as html } from './query-assigned-elements-8a604587.js';
 
 /* =====================================================================
-   Milestones table (v1.0)
-   Una fila por milestone: Name (texto) | Type (desplegable) |
-   Status (desplegable) | CompletionDate (fecha).
+   Milestones table (v2.0)
+   Una fila por milestone: Name (texto) | Description (texto) | Type (desplegable) |
+   Status (desplegable) | StartingDate (fecha) | CompletionDate (fecha).
    Valor que se guarda (updatedJson):
-     [{"Name":"...","Type":"...","Status":"...","CompletionDate":"2026-11-30"}, ...]
+     [{"Name":"...","Type":"...","Status":"...","StartingDate":"2026-10-01","CompletionDate":"2026-11-30"}, ...]
    Si falta algún campo obligatorio, la primera fila lleva "_faltan": true
    (lo pueden leer las reglas del formulario para bloquear el envío).
    Tabla sin filas = valor vacío ("").
    ===================================================================== */
 
-const TAG = 'pk-milestones-table';
+const TAG = 'pk-milestones-table-v2';
 
 // Columnas fijas. "key" es el nombre en el JSON; "label" es la cabecera; "options" los valores del desplegable.
 const FIELDS = [
@@ -19,11 +19,12 @@ const FIELDS = [
   { key: 'Description', label: 'Milestone description', kind: 'text' },
   { key: 'Type', label: 'Milestone type', kind: 'select', options: ['Health', 'Implementation', 'Money Step'] },
   { key: 'Status', label: 'Milestone status', kind: 'select', options: ['Not started', 'Started', 'Completed', 'Cancelled'] },
+  { key: 'StartingDate', label: 'Milestone starting date', kind: 'date' },
   { key: 'CompletionDate', label: 'Milestone completion date', kind: 'date' }
 ];
 
 // Obligatoriedad por defecto (igual que el formulario actual). "Reglas de obligatorio" la cambia.
-const DEFAULT_REQUIRED = { Name: 'siempre', Description: 'nunca', Type: 'siempre', Status: 'siempre', CompletionDate: 'siempre' };
+const DEFAULT_REQUIRED = { Name: 'siempre', Description: 'nunca', Type: 'siempre', Status: 'siempre', StartingDate: 'nunca', CompletionDate: 'siempre' };
 
 // Textos visibles (para traducirlos, cambiar solo aquí)
 const MSG = {
@@ -145,7 +146,7 @@ const ICONS = {
 };
 const icon = d => html`<svg height="18" width="18" viewBox="0 0 24 24" fill="currentColor"><path d="${d}"></path></svg>`;
 
-class NacMilestones extends LitElement {
+class NacMilestonesV2 extends LitElement {
   static get styles() {
     return [baseStyle];
   }
@@ -166,7 +167,7 @@ class NacMilestones extends LitElement {
   }
 
   static getMetaConfig() {
-    return import('./plugin-milestone.config.js').then(x => x.config);
+    return import('./plugin-milestone.config-v2.js').then(x => x.config);
   }
 
   constructor() {
@@ -972,6 +973,6 @@ class NacMilestones extends LitElement {
   }
 }
 
-if (!customElements.get(TAG)) customElements.define(TAG, NacMilestones);
+if (!customElements.get(TAG)) customElements.define(TAG, NacMilestonesV2);
 
-export { NacMilestones };
+export { NacMilestonesV2 };
