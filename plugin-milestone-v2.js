@@ -109,8 +109,14 @@ const baseStyle = css`
   th { white-space: normal; line-height: 1.2; font-weight: 700; height: 3.5rem; border-top: none; border-bottom: 2px solid var(--_header-border); cursor: pointer; user-select: none; }
   th .req { color: var(--_danger); margin-left: 2px; }
   th .arrow { margin-left: 4px; font-size: 0.75rem; opacity: 0.7; }
-  th.col-Name { width: 22%; }
-  th.col-Description { width: 28%; }
+  /* Anchos de columna (suman 100%) para que las cabeceras quepan en 1-2 líneas */
+  th.col-Name { width: 17%; }
+  th.col-Description { width: 21%; }
+  th.col-Type { width: 14%; }
+  th.col-Status { width: 14%; }
+  th.col-StartingDate { width: 16%; }
+  th.col-CompletionDate { width: 18%; }
+  th { text-wrap: balance; }
   thead tr { background: var(--_header-bg); }
   tr { height: 3.25rem; }
   tbody tr:hover { background: var(--_hover-bg); }
